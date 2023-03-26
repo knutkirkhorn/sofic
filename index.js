@@ -81,6 +81,6 @@ export async function checkRepoFiles(directoryPath = path.dirname(fileURLToPath(
 
 	for (const subDirectory of subDirectories) {
 		console.log('\nChecking', subDirectory);
-		await checkDirectoryFiles(path.join(parsedDirectoryPath, subDirectory));
+		await checkDirectoryFiles(subDirectory);
 	}
 }
