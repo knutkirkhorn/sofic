@@ -37,7 +37,6 @@ async function fileExists(filePath) {
 
 const defaultFilesToCheck = [
 	'.editorconfig',
-	'.eslintrc.json',
 	'.gitattributes'
 ];
 
@@ -51,7 +50,11 @@ async function hasPackageJson(directoryPath) {
 }
 
 async function checkDirectoryFiles(directoryPath) {
-	for (const fileToCheck of defaultFilesToCheck) {
+	const filesToCheck = [...defaultFilesToCheck];
+	const isJavascriptDirectory = await hasPackageJson(directoryPath);
+	if (isJavascriptDirectory) filesToCheck.push('.eslintrc.json');
+
+	for (const fileToCheck of filesToCheck) {
 		const filePath = path.join(directoryPath, fileToCheck);
 		const currentFileExists = await fileExists(filePath);
 		const currentLogSymbol = currentFileExists
