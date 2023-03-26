@@ -1,7 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import logSymbols from 'log-symbols';
-import {fileURLToPath} from 'node:url';
 
 async function isDirectory(directoryPath) {
 	try {
