@@ -64,7 +64,7 @@ async function checkDirectoryFiles(directoryPath) {
 	}
 }
 
-export async function checkRepoFiles(directoryPath = path.dirname(fileURLToPath(import.meta.url))) {
+export async function checkRepoFiles(directoryPath = process.cwd()) {
 	const parsedDirectoryPath = path.resolve(directoryPath);
 	console.log(`Checking \`${parsedDirectoryPath}\`...`);
 
