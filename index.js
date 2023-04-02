@@ -35,8 +35,7 @@ async function fileExists(filePath) {
 }
 
 const defaultFilesToCheck = [
-	'.editorconfig',
-	'.gitattributes'
+	'.editorconfig'
 ];
 
 async function isGitRepo(directoryPath) {
@@ -52,6 +51,9 @@ async function checkDirectoryFiles(directoryPath) {
 	const filesToCheck = [...defaultFilesToCheck];
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
 	if (isJavascriptDirectory) filesToCheck.push('.eslintrc.json');
+
+	const isDirectoryGitRepo = await isGitRepo(directoryPath);
+	if (isDirectoryGitRepo) filesToCheck.push('.gitignore', '.gitattributes');
 
 	for (const fileToCheck of filesToCheck) {
 		const filePath = path.join(directoryPath, fileToCheck);
