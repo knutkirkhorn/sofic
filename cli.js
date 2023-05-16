@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// eslint-disable-next-line import/no-unresolved
 import meow from 'meow';
 import {checkRepoFiles} from './index.js';
 
