@@ -2,6 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import logSymbols from 'log-symbols';
 import chalk from 'chalk';
+import stripJsonComments from 'strip-json-comments';
 
 async function isDirectory(directoryPath) {
 	try {
@@ -48,6 +49,28 @@ async function hasPackageJson(directoryPath) {
 	return fileExists(path.join(directoryPath, 'package.json'));
 }
 
+async function checkEslintConfig(directoryPath) {
+	const packageJson = JSON.parse(await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'));
+	const isUsingAva = Object.keys(packageJson.devDependencies).includes('ava');
+	const hasInstalledAvaEslintPlugin = Object.keys(packageJson.devDependencies).includes('eslint-plugin-ava');
+
+	const eslintConfigPath = path.join(directoryPath, '.eslintrc.json');
+	const eslintConfig = JSON.parse(stripJsonComments(await fs.readFile(eslintConfigPath, 'utf8')));
+	const hasEnabledAvaEslintPlugin = eslintConfig.extends.includes('plugin:ava/recommended');
+
+	const eslintErrors = [];
+
+	if (isUsingAva) {
+		if (!hasInstalledAvaEslintPlugin) {
+			eslintErrors.push('package.json: missing `eslint-plugin-ava` in `devDependencies`');
+		} else if (!hasEnabledAvaEslintPlugin) {
+			eslintErrors.push('.eslintrc.json: missing `plugin:ava/recommended` in `extends`');
+		}
+	}
+
+	return eslintErrors;
+}
+
 async function checkDirectoryFiles(directoryPath) {
 	const filesToCheck = [...defaultFilesToCheck];
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
@@ -56,21 +79,26 @@ async function checkDirectoryFiles(directoryPath) {
 	const isDirectoryGitRepo = await isGitRepo(directoryPath);
 	if (isDirectoryGitRepo) filesToCheck.push('.gitignore', '.gitattributes');
 
-	let hasPrintedCheck = false;
+	const errors = [];
 
 	for (const fileToCheck of filesToCheck) {
 		const filePath = path.join(directoryPath, fileToCheck);
 		const currentFileExists = await fileExists(filePath);
 
-		// eslint-disable-next-line no-continue
-		if (currentFileExists) continue;
+		if (!currentFileExists) errors.push(fileToCheck);
+	}
 
-		if (!hasPrintedCheck) {
-			console.log(`\n${chalk.underline(directoryPath)}`);
-			hasPrintedCheck = true;
-		}
+	if (isJavascriptDirectory) {
+		const eslintErrors = await checkEslintConfig(directoryPath);
+		errors.push(...eslintErrors);
+	}
 
-		console.log(`${logSymbols.error} ${fileToCheck}`);
+	if (errors.length > 0) {
+		console.log(`\n${chalk.underline(directoryPath)}`);
+	}
+
+	for (const error of errors) {
+		console.log(`${logSymbols.error} ${error}`);
 	}
 }
 
