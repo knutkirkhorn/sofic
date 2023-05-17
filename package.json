@@ -35,6 +35,7 @@
 	},
 	"homepage": "https://github.com/knutkirkhorn/sofic#readme",
 	"dependencies": {
+		"chalk": "^5.2.0",
 		"log-symbols": "^5.1.0",
 		"meow": "^12.0.1"
 	},

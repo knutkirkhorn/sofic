@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import logSymbols from 'log-symbols';
+import chalk from 'chalk';
 
 async function isDirectory(directoryPath) {
 	try {
@@ -67,7 +68,7 @@ async function checkDirectoryFiles(directoryPath) {
 
 export async function checkRepoFiles(directoryPath = process.cwd()) {
 	const parsedDirectoryPath = path.resolve(directoryPath);
-	console.log(`Checking \`${parsedDirectoryPath}\`...`);
+	console.log(`\n${chalk.underline(parsedDirectoryPath)}`);
 
 	const {isDirectory: isPathDirectory} = await isDirectory(parsedDirectoryPath);
 
@@ -84,7 +85,7 @@ export async function checkRepoFiles(directoryPath = process.cwd()) {
 	const subDirectories = await getSubDirectories(parsedDirectoryPath);
 
 	for (const subDirectory of subDirectories) {
-		console.log('\nChecking', subDirectory);
+		console.log(`\n${chalk.underline(subDirectory)}`);
 		await checkDirectoryFiles(subDirectory);
 	}
 }
