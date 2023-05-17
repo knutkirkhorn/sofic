@@ -56,20 +56,26 @@ async function checkDirectoryFiles(directoryPath) {
 	const isDirectoryGitRepo = await isGitRepo(directoryPath);
 	if (isDirectoryGitRepo) filesToCheck.push('.gitignore', '.gitattributes');
 
+	let hasPrintedCheck = false;
+
 	for (const fileToCheck of filesToCheck) {
 		const filePath = path.join(directoryPath, fileToCheck);
 		const currentFileExists = await fileExists(filePath);
-		const currentLogSymbol = currentFileExists
-			? logSymbols.success
-			: logSymbols.error;
-		console.log(`${currentLogSymbol} ${fileToCheck}`);
+
+		// eslint-disable-next-line no-continue
+		if (currentFileExists) continue;
+
+		if (!hasPrintedCheck) {
+			console.log(`\n${chalk.underline(directoryPath)}`);
+			hasPrintedCheck = true;
+		}
+
+		console.log(`${logSymbols.error} ${fileToCheck}`);
 	}
 }
 
 export async function checkRepoFiles(directoryPath = process.cwd()) {
 	const parsedDirectoryPath = path.resolve(directoryPath);
-	console.log(`\n${chalk.underline(parsedDirectoryPath)}`);
-
 	const {isDirectory: isPathDirectory} = await isDirectory(parsedDirectoryPath);
 
 	if (!isPathDirectory) throw new Error('Input path is not a directory');
@@ -85,7 +91,6 @@ export async function checkRepoFiles(directoryPath = process.cwd()) {
 	const subDirectories = await getSubDirectories(parsedDirectoryPath);
 
 	for (const subDirectory of subDirectories) {
-		console.log(`\n${chalk.underline(subDirectory)}`);
 		await checkDirectoryFiles(subDirectory);
 	}
 }
