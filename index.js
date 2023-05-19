@@ -50,15 +50,17 @@ async function hasPackageJson(directoryPath) {
 }
 
 // eslint-disable-next-line consistent-return
-async function checkEslintPlugin(packageJson, eslintConfig, pluginName) {
-	const hasInstalledEslintPlugin = Object.keys(packageJson.devDependencies).includes(`eslint-plugin-${pluginName}`);
-	const hasEnabledEslintPlugin = eslintConfig.extends.includes(`plugin:${pluginName}/recommended`);
+async function checkEslintPlugin(packageJson, hasDevDependencies, eslintConfigExists, eslintConfig, pluginName) {
+	const hasInstalledEslintPlugin = hasDevDependencies
+		? Object.keys(packageJson.devDependencies).includes(`eslint-plugin-${pluginName}`)
+		: false;
+	const hasEnabledEslintPlugin = eslintConfigExists ? eslintConfig.extends.includes(`plugin:${pluginName}/recommended`) : false;
 
 	if (!hasInstalledEslintPlugin) {
 		return `package.json: missing \`eslint-plugin-${pluginName}\` in \`devDependencies\``;
 	}
 
-	if (!hasEnabledEslintPlugin) {
+	if (eslintConfigExists && !hasEnabledEslintPlugin) {
 		return `.eslintrc.json: missing \`plugin:${pluginName}/recommended\` in \`extends\``;
 	}
 }
@@ -66,18 +68,24 @@ async function checkEslintPlugin(packageJson, eslintConfig, pluginName) {
 async function checkEslintConfig(directoryPath) {
 	const packageJson = JSON.parse(await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'));
 	const eslintConfigPath = path.join(directoryPath, '.eslintrc.json');
-	const eslintConfig = JSON.parse(stripJsonComments(await fs.readFile(eslintConfigPath, 'utf8')));
+	const eslintConfigExists = await fileExists(eslintConfigPath);
+	const eslintConfig = eslintConfigExists
+		? JSON.parse(stripJsonComments(await fs.readFile(eslintConfigPath, 'utf8')))
+		: {};
 
 	const eslintErrors = [];
 
-	const isUsingAva = Object.keys(packageJson.devDependencies).includes('ava');
+	const hasDevDependencies = packageJson.devDependencies !== undefined;
+	const isUsingAva = hasDevDependencies
+		? Object.keys(packageJson.devDependencies).includes('ava')
+		: false;
 
 	if (isUsingAva) {
-		const avaEslintError = await checkEslintPlugin(packageJson, eslintConfig, 'ava');
+		const avaEslintError = await checkEslintPlugin(packageJson, hasDevDependencies, eslintConfigExists, eslintConfig, 'ava');
 		if (avaEslintError) eslintErrors.push(avaEslintError);
 	}
 
-	const unicornEslintError = await checkEslintPlugin(packageJson, eslintConfig, 'unicorn');
+	const unicornEslintError = await checkEslintPlugin(packageJson, hasDevDependencies, eslintConfigExists, eslintConfig, 'unicorn');
 	if (unicornEslintError) eslintErrors.push(unicornEslintError);
 
 	return eslintErrors;
