@@ -1,6 +1,6 @@
 {
 	"name": "sofic",
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"description": "Check the source files in directories",
 	"scripts": {
 		"test": "ava",
