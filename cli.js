@@ -11,7 +11,7 @@ const cli = meow(`
 	  $ sofic C:\\Users\\knut\\dev\\sofic
 	  $ sofic C:\\Users\\knut\\dev
 `, {
-	importMeta: import.meta
+	importMeta: import.meta,
 });
 
 const directoryPath = cli.input[0];

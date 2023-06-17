@@ -9,12 +9,12 @@ async function isDirectory(directoryPath) {
 		const stats = await fs.stat(directoryPath);
 		return {
 			isDirectory: stats.isDirectory(),
-			directoryPath
+			directoryPath,
 		};
 	} catch {
 		return {
 			isDirectory: false,
-			directoryPath
+			directoryPath,
 		};
 	}
 }
@@ -37,7 +37,7 @@ async function fileExists(filePath) {
 }
 
 const defaultFilesToCheck = [
-	'.editorconfig'
+	'.editorconfig',
 ];
 
 async function isGitRepo(directoryPath) {
