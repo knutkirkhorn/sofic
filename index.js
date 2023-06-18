@@ -74,8 +74,16 @@ async function checkEslintConfig(directoryPath) {
 		: {};
 
 	const eslintErrors = [];
-
 	const hasDevelopmentDependencies = packageJson.devDependencies !== undefined;
+
+	const isUsingEslint = hasDevelopmentDependencies
+		? Object.keys(packageJson.devDependencies).includes('eslint')
+		: false;
+
+	if (!isUsingEslint) {
+		return ['package.json: missing `eslint` in `devDependencies`'];
+	}
+
 	const isUsingAva = hasDevelopmentDependencies
 		? Object.keys(packageJson.devDependencies).includes('ava')
 		: false;
