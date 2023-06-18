@@ -99,6 +99,28 @@ async function checkEslintConfig(directoryPath) {
 	return eslintErrors;
 }
 
+async function checkGithubActions(directoryPath) {
+	const githubActionsDirectory = path.join(directoryPath, '.github', 'workflows');
+
+	const {isDirectory: githubActionsDirectoryExists} = await isDirectory(githubActionsDirectory);
+	if (!githubActionsDirectoryExists) {
+		return ['GitHub Actions: missing workflow file in `.github/workflows`'];
+	}
+
+	const files = await fs.readdir(githubActionsDirectory);
+
+	for (const file of files) {
+		const filePath = path.join(githubActionsDirectory, file);
+		const stats = await fs.stat(filePath);
+
+		if (!stats.isDirectory() && (file.endsWith('.yaml') || file.endsWith('.yml'))) {
+			return [];
+		}
+	}
+
+	return ['GitHub Actions: missing workflow file in `.github/workflows`'];
+}
+
 async function checkDirectoryFiles(directoryPath) {
 	const filesToCheck = [...defaultFilesToCheck];
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
@@ -120,6 +142,9 @@ async function checkDirectoryFiles(directoryPath) {
 		const eslintErrors = await checkEslintConfig(directoryPath);
 		errors.push(...eslintErrors);
 	}
+
+	const githubActionsErrors = await checkGithubActions(directoryPath);
+	errors.push(...githubActionsErrors);
 
 	if (errors.length > 0) {
 		console.log(`\n${chalk.underline(directoryPath)}`);
