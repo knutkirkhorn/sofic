@@ -121,6 +121,34 @@ async function checkGithubActions(directoryPath) {
 	return ['GitHub Actions: missing workflow file in `.github/workflows`'];
 }
 
+async function checkNpmPackage(directoryPath) {
+	const packageJson = JSON.parse(await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'));
+	const isNotPrivate = packageJson.private !== true;
+
+	if (!isNotPrivate) return [];
+
+	const npmPackageErrors = [];
+
+	const hasLockFile = await fileExists(path.join(directoryPath, 'package-lock.json'));
+	if (hasLockFile) npmPackageErrors.push('npm package: should not have a lockfile (`package-lock.json`)');
+
+	const hasNpmrc = await fileExists(path.join(directoryPath, '.npmrc'));
+	if (!hasNpmrc) npmPackageErrors.push('npm package: should have a `.npmrc` file');
+
+	const isTypeScriptPackage = packageJson.devDependencies && packageJson.devDependencies.typescript !== undefined;
+	const hasIndexFile = await fileExists(path.join(directoryPath, 'index.js'));
+
+	if (!isTypeScriptPackage && hasIndexFile) {
+		const hasTypeDefinitions = await fileExists(path.join(directoryPath, 'index.d.ts'));
+		if (!hasTypeDefinitions) npmPackageErrors.push('npm package: should have type definitions (`index.d.ts`)');
+
+		const hasTypeDefinitionTests = await fileExists(path.join(directoryPath, 'index.test-d.ts'));
+		if (!hasTypeDefinitionTests) npmPackageErrors.push('npm package: should have type definition tests (`index.test-d.ts`)');
+	}
+
+	return npmPackageErrors;
+}
+
 async function checkDirectoryFiles(directoryPath) {
 	const filesToCheck = [...defaultFilesToCheck];
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
@@ -139,6 +167,9 @@ async function checkDirectoryFiles(directoryPath) {
 	}
 
 	if (isJavascriptDirectory) {
+		const npmPackageErrors = await checkNpmPackage(directoryPath);
+		errors.push(...npmPackageErrors);
+
 		const eslintErrors = await checkEslintConfig(directoryPath);
 		errors.push(...eslintErrors);
 	}
