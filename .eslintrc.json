@@ -8,14 +8,14 @@
 		"airbnb-base",
 		"plugin:import/recommended",
 		"plugin:ava/recommended",
-		"plugin:unicorn/recommended"
+		"plugin:unicorn/recommended",
+		"prettier"
 	],
 	"parserOptions": {
 		"ecmaVersion": 2023,
 		"sourceType": "module"
 	},
 	"rules": {
-		"indent": ["error", "tab"],
 		"no-tabs": "off",
 		"quotes": ["error", "single"],
 		"semi": ["error", "always"],

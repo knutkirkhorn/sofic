@@ -1,7 +1,7 @@
-import path from 'node:path';
 import fs from 'node:fs/promises';
-import logSymbols from 'log-symbols';
+import path from 'node:path';
 import chalk from 'chalk';
+import logSymbols from 'log-symbols';
 import stripJsonComments from 'strip-json-comments';
 
 async function isDirectory(directoryPath) {
@@ -21,7 +21,9 @@ async function isDirectory(directoryPath) {
 
 async function getSubDirectories(directoryPath) {
 	const subPaths = await fs.readdir(directoryPath);
-	const subDirectories = await Promise.all(subPaths.map(subPath => isDirectory(path.join(directoryPath, subPath))));
+	const subDirectories = await Promise.all(
+		subPaths.map(subPath => isDirectory(path.join(directoryPath, subPath))),
+	);
 	return subDirectories
 		.filter(subDirectory => subDirectory.isDirectory)
 		.map(subDirectory => subDirectory.directoryPath);
@@ -36,9 +38,7 @@ async function fileExists(filePath) {
 	}
 }
 
-const defaultFilesToCheck = [
-	'.editorconfig',
-];
+const defaultFilesToCheck = ['.editorconfig'];
 
 async function isGitRepo(directoryPath) {
 	// eslint-disable-next-line unicorn/no-await-expression-member
@@ -50,11 +50,21 @@ async function hasPackageJson(directoryPath) {
 }
 
 // eslint-disable-next-line consistent-return
-async function checkEslintPlugin(packageJson, hasDevelopmentDependencies, eslintConfigExists, eslintConfig, pluginName) {
+async function checkEslintPlugin(
+	packageJson,
+	hasDevelopmentDependencies,
+	eslintConfigExists,
+	eslintConfig,
+	pluginName,
+) {
 	const hasInstalledEslintPlugin = hasDevelopmentDependencies
-		? Object.keys(packageJson.devDependencies).includes(`eslint-plugin-${pluginName}`)
+		? Object.keys(packageJson.devDependencies).includes(
+				`eslint-plugin-${pluginName}`,
+			)
 		: false;
-	const hasEnabledEslintPlugin = eslintConfigExists ? eslintConfig.extends.includes(`plugin:${pluginName}/recommended`) : false;
+	const hasEnabledEslintPlugin = eslintConfigExists
+		? eslintConfig.extends.includes(`plugin:${pluginName}/recommended`)
+		: false;
 
 	if (!hasInstalledEslintPlugin) {
 		return `package.json: missing \`eslint-plugin-${pluginName}\` in \`devDependencies\``;
@@ -66,7 +76,9 @@ async function checkEslintPlugin(packageJson, hasDevelopmentDependencies, eslint
 }
 
 async function checkEslintConfig(directoryPath) {
-	const packageJson = JSON.parse(await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'));
+	const packageJson = JSON.parse(
+		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
+	);
 	const eslintConfigPath = path.join(directoryPath, '.eslintrc.json');
 	const eslintConfigExists = await fileExists(eslintConfigPath);
 	const eslintConfig = eslintConfigExists
@@ -89,20 +101,38 @@ async function checkEslintConfig(directoryPath) {
 		: false;
 
 	if (isUsingAva) {
-		const avaEslintError = await checkEslintPlugin(packageJson, hasDevelopmentDependencies, eslintConfigExists, eslintConfig, 'ava');
+		const avaEslintError = await checkEslintPlugin(
+			packageJson,
+			hasDevelopmentDependencies,
+			eslintConfigExists,
+			eslintConfig,
+			'ava',
+		);
 		if (avaEslintError) eslintErrors.push(avaEslintError);
 	}
 
-	const unicornEslintError = await checkEslintPlugin(packageJson, hasDevelopmentDependencies, eslintConfigExists, eslintConfig, 'unicorn');
+	const unicornEslintError = await checkEslintPlugin(
+		packageJson,
+		hasDevelopmentDependencies,
+		eslintConfigExists,
+		eslintConfig,
+		'unicorn',
+	);
 	if (unicornEslintError) eslintErrors.push(unicornEslintError);
 
 	return eslintErrors;
 }
 
 async function checkGithubActions(directoryPath) {
-	const githubActionsDirectory = path.join(directoryPath, '.github', 'workflows');
+	const githubActionsDirectory = path.join(
+		directoryPath,
+		'.github',
+		'workflows',
+	);
 
-	const {isDirectory: githubActionsDirectoryExists} = await isDirectory(githubActionsDirectory);
+	const {isDirectory: githubActionsDirectoryExists} = await isDirectory(
+		githubActionsDirectory,
+	);
 	if (!githubActionsDirectoryExists) {
 		return ['GitHub Actions: missing workflow file in `.github/workflows`'];
 	}
@@ -113,7 +143,10 @@ async function checkGithubActions(directoryPath) {
 		const filePath = path.join(githubActionsDirectory, file);
 		const stats = await fs.stat(filePath);
 
-		if (!stats.isDirectory() && (file.endsWith('.yaml') || file.endsWith('.yml'))) {
+		if (
+			!stats.isDirectory() &&
+			(file.endsWith('.yaml') || file.endsWith('.yml'))
+		) {
 			return [];
 		}
 	}
@@ -122,28 +155,48 @@ async function checkGithubActions(directoryPath) {
 }
 
 async function checkNpmPackage(directoryPath) {
-	const packageJson = JSON.parse(await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'));
+	const packageJson = JSON.parse(
+		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
+	);
 	const isNotPrivate = packageJson.private !== true;
 
 	if (!isNotPrivate) return [];
 
 	const npmPackageErrors = [];
 
-	const hasLockFile = await fileExists(path.join(directoryPath, 'package-lock.json'));
-	if (hasLockFile) npmPackageErrors.push('npm package: should not have a lockfile (`package-lock.json`)');
+	const hasLockFile = await fileExists(
+		path.join(directoryPath, 'package-lock.json'),
+	);
+	if (hasLockFile)
+		npmPackageErrors.push(
+			'npm package: should not have a lockfile (`package-lock.json`)',
+		);
 
 	const hasNpmrc = await fileExists(path.join(directoryPath, '.npmrc'));
-	if (!hasNpmrc) npmPackageErrors.push('npm package: should have a `.npmrc` file');
+	if (!hasNpmrc)
+		npmPackageErrors.push('npm package: should have a `.npmrc` file');
 
-	const isTypeScriptPackage = packageJson.devDependencies && packageJson.devDependencies.typescript !== undefined;
+	const isTypeScriptPackage =
+		packageJson.devDependencies &&
+		packageJson.devDependencies.typescript !== undefined;
 	const hasIndexFile = await fileExists(path.join(directoryPath, 'index.js'));
 
 	if (!isTypeScriptPackage && hasIndexFile) {
-		const hasTypeDefinitions = await fileExists(path.join(directoryPath, 'index.d.ts'));
-		if (!hasTypeDefinitions) npmPackageErrors.push('npm package: should have type definitions (`index.d.ts`)');
+		const hasTypeDefinitions = await fileExists(
+			path.join(directoryPath, 'index.d.ts'),
+		);
+		if (!hasTypeDefinitions)
+			npmPackageErrors.push(
+				'npm package: should have type definitions (`index.d.ts`)',
+			);
 
-		const hasTypeDefinitionTests = await fileExists(path.join(directoryPath, 'index.test-d.ts'));
-		if (!hasTypeDefinitionTests) npmPackageErrors.push('npm package: should have type definition tests (`index.test-d.ts`)');
+		const hasTypeDefinitionTests = await fileExists(
+			path.join(directoryPath, 'index.test-d.ts'),
+		);
+		if (!hasTypeDefinitionTests)
+			npmPackageErrors.push(
+				'npm package: should have type definition tests (`index.test-d.ts`)',
+			);
 	}
 
 	return npmPackageErrors;
