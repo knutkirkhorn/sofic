@@ -129,6 +129,49 @@ async function checkNpmPackage(directoryPath) {
 	return npmPackageErrors;
 }
 
+async function checkPrettierConfig(directoryPath) {
+	const packageJson = JSON.parse(
+		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
+	);
+
+	const prettierErrors = [];
+	const hasDevelopmentDependencies = packageJson.devDependencies !== undefined;
+
+	const isUsingPrettier = hasDevelopmentDependencies
+		? Object.keys(packageJson.devDependencies).includes('prettier')
+		: false;
+
+	if (!isUsingPrettier) {
+		return ['package.json: missing `prettier` in `devDependencies`'];
+	}
+
+	const hasInstalledSortImportsPrettierPlugin = hasDevelopmentDependencies
+		? Object.keys(packageJson.devDependencies).includes(
+				'@ianvs/prettier-plugin-sort-imports',
+			)
+		: false;
+
+	if (!hasInstalledSortImportsPrettierPlugin) {
+		prettierErrors.push(
+			'package.json: missing `@ianvs/prettier-plugin-sort-imports` in `devDependencies`',
+		);
+	}
+
+	const hasInstalledPrettierEslintConfig = hasDevelopmentDependencies
+		? Object.keys(packageJson.devDependencies).includes(
+				'eslint-config-prettier',
+			)
+		: false;
+
+	if (!hasInstalledPrettierEslintConfig) {
+		prettierErrors.push(
+			'package.json: missing `eslint-config-prettier` in `devDependencies`',
+		);
+	}
+
+	return prettierErrors;
+}
+
 export async function checkJavascriptErrors(directoryPath) {
 	const errors = [];
 
@@ -137,6 +180,9 @@ export async function checkJavascriptErrors(directoryPath) {
 
 	const eslintErrors = await checkEslintConfig(directoryPath);
 	errors.push(...eslintErrors);
+
+	const prettierErrors = await checkPrettierConfig(directoryPath);
+	errors.push(...prettierErrors);
 
 	return errors;
 }

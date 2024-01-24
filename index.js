@@ -71,7 +71,9 @@ async function checkGithubActions(directoryPath) {
 async function checkDirectoryFiles(directoryPath) {
 	const filesToCheck = [...defaultFilesToCheck];
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
-	if (isJavascriptDirectory) filesToCheck.push('.eslintrc.json');
+	if (isJavascriptDirectory) {
+		filesToCheck.push('.eslintrc.json', 'prettier.config.js');
+	}
 
 	const isDirectoryGitRepo = await isGitRepo(directoryPath);
 	if (isDirectoryGitRepo) filesToCheck.push('.gitignore', '.gitattributes');
