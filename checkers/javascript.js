@@ -129,45 +129,42 @@ async function checkNpmPackage(directoryPath) {
 	return npmPackageErrors;
 }
 
+function checkDevelopmentDependencies(packageJson, dependencies) {
+	if (packageJson.devDependencies === undefined) {
+		return dependencies.map(
+			dependency =>
+				`package.json: missing \`${dependency}\` in \`devDependencies\``,
+		);
+	}
+
+	const errors = [];
+
+	for (const dependency of dependencies) {
+		if (!Object.keys(packageJson.devDependencies).includes(dependency)) {
+			errors.push(
+				`package.json: missing \`${dependency}\` in \`devDependencies\``,
+			);
+		}
+	}
+
+	return errors;
+}
+
 async function checkPrettierConfig(directoryPath) {
 	const packageJson = JSON.parse(
 		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
 	);
 
 	const prettierErrors = [];
-	const hasDevelopmentDependencies = packageJson.devDependencies !== undefined;
-
-	const isUsingPrettier = hasDevelopmentDependencies
-		? Object.keys(packageJson.devDependencies).includes('prettier')
-		: false;
-
-	if (!isUsingPrettier) {
-		return ['package.json: missing `prettier` in `devDependencies`'];
-	}
-
-	const hasInstalledSortImportsPrettierPlugin = hasDevelopmentDependencies
-		? Object.keys(packageJson.devDependencies).includes(
-				'@ianvs/prettier-plugin-sort-imports',
-			)
-		: false;
-
-	if (!hasInstalledSortImportsPrettierPlugin) {
-		prettierErrors.push(
-			'package.json: missing `@ianvs/prettier-plugin-sort-imports` in `devDependencies`',
-		);
-	}
-
-	const hasInstalledPrettierEslintConfig = hasDevelopmentDependencies
-		? Object.keys(packageJson.devDependencies).includes(
-				'eslint-config-prettier',
-			)
-		: false;
-
-	if (!hasInstalledPrettierEslintConfig) {
-		prettierErrors.push(
-			'package.json: missing `eslint-config-prettier` in `devDependencies`',
-		);
-	}
+	const developmentDependencyErrors = checkDevelopmentDependencies(
+		packageJson,
+		[
+			'prettier',
+			'eslint-config-prettier',
+			'@ianvs/prettier-plugin-sort-imports',
+		],
+	);
+	prettierErrors.push(...developmentDependencyErrors);
 
 	return prettierErrors;
 }
