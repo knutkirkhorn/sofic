@@ -159,14 +159,17 @@ async function checkPrettierConfig(directoryPath) {
 	const hasInstalledTailwind = Object.keys(
 		packageJson.devDependencies,
 	).includes('tailwindcss');
+	const developmentDependenciesToCheck = [
+		'prettier',
+		'eslint-config-prettier',
+		'@ianvs/prettier-plugin-sort-imports',
+	];
+	if (hasInstalledTailwind) {
+		developmentDependenciesToCheck.push('prettier-plugin-tailwindcss');
+	}
 	const developmentDependencyErrors = checkDevelopmentDependencies(
 		packageJson,
-		[
-			'prettier',
-			'eslint-config-prettier',
-			'@ianvs/prettier-plugin-sort-imports',
-			hasInstalledTailwind && 'prettier-plugin-tailwindcss',
-		],
+		developmentDependenciesToCheck,
 	);
 	prettierErrors.push(...developmentDependencyErrors);
 
