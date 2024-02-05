@@ -13,6 +13,7 @@
 	"files": [
 		"cli.js",
 		"index.js",
+		"util.js",
 		"checkers"
 	],
 	"repository": {
