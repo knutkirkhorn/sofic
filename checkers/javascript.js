@@ -94,14 +94,16 @@ async function checkNpmPackage(directoryPath) {
 	const hasLockFile = await fileExists(
 		path.join(directoryPath, 'package-lock.json'),
 	);
-	if (hasLockFile)
+	if (hasLockFile) {
 		npmPackageErrors.push(
 			'npm package: should not have a lockfile (`package-lock.json`)',
 		);
+	}
 
 	const hasNpmrc = await fileExists(path.join(directoryPath, '.npmrc'));
-	if (!hasNpmrc)
+	if (!hasNpmrc) {
 		npmPackageErrors.push('npm package: should have a `.npmrc` file');
+	}
 
 	const isTypeScriptPackage =
 		packageJson.devDependencies &&
@@ -112,18 +114,20 @@ async function checkNpmPackage(directoryPath) {
 		const hasTypeDefinitions = await fileExists(
 			path.join(directoryPath, 'index.d.ts'),
 		);
-		if (!hasTypeDefinitions)
+		if (!hasTypeDefinitions) {
 			npmPackageErrors.push(
 				'npm package: should have type definitions (`index.d.ts`)',
 			);
+		}
 
 		const hasTypeDefinitionTests = await fileExists(
 			path.join(directoryPath, 'index.test-d.ts'),
 		);
-		if (!hasTypeDefinitionTests)
+		if (!hasTypeDefinitionTests) {
 			npmPackageErrors.push(
 				'npm package: should have type definition tests (`index.test-d.ts`)',
 			);
+		}
 	}
 
 	return npmPackageErrors;
