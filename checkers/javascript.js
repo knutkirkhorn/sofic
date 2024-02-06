@@ -154,7 +154,7 @@ function checkDevelopmentDependencies(packageJson, dependencies) {
 	return errors;
 }
 
-async function checkPrettierConfig(directoryPath) {
+export async function checkPrettierConfig(directoryPath) {
 	const packageJson = JSON.parse(
 		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
 	);
