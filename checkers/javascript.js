@@ -81,7 +81,7 @@ async function checkEslintConfig(directoryPath) {
 	return eslintErrors;
 }
 
-async function checkNpmPackage(directoryPath) {
+export async function checkNpmPackage(directoryPath) {
 	const packageJson = JSON.parse(
 		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
 	);
