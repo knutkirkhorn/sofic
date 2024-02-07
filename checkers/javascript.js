@@ -33,7 +33,7 @@ async function checkEslintPlugin(
 	}
 }
 
-async function checkEslintConfig(directoryPath) {
+export async function checkEslintConfig(directoryPath) {
 	const packageJson = JSON.parse(
 		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
 	);
