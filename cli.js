@@ -1,20 +1,31 @@
 #!/usr/bin/env node
+import chalk from 'chalk';
 import meow from 'meow';
 import {checkRepoFiles} from './index.js';
 
 const cli = meow(
 	`
 	Usage
-	  $ sofic <path>
+	  $ sofic check <path>
 
 	Examples
-	  $ sofic C:\\Users\\knut\\dev\\sofic
-	  $ sofic C:\\Users\\knut\\dev
+	  $ sofic check C:\\Users\\knut\\dev\\sofic
+	  $ sofic check C:\\Users\\knut\\dev
 `,
 	{
 		importMeta: import.meta,
 	},
 );
 
-const directoryPath = cli.input[0];
-await checkRepoFiles(directoryPath);
+const command = cli.input[0];
+
+if (command === 'check') {
+	const directoryPath = cli.input[1];
+	await checkRepoFiles(directoryPath);
+} else {
+	console.error(
+		chalk.red(
+			`Unknown command \`${command}\`. See \`sofic --help\` for available commands.`,
+		),
+	);
+}
