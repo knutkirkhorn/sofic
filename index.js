@@ -70,9 +70,13 @@ async function checkGithubActions(directoryPath) {
 
 async function checkDirectoryFiles(directoryPath) {
 	const filesToCheck = [...defaultFilesToCheck];
+	const regexFilesToCheck = [];
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
 	if (isJavascriptDirectory) {
-		filesToCheck.push('.eslintrc.json', 'prettier.config.js');
+		regexFilesToCheck.push(
+			/^eslint\.config\.(js|mjs|ts)$/,
+			/^prettier\.config\.(js|mjs|ts)$/,
+		);
 	}
 
 	const isDirectoryGitRepo = await isGitRepo(directoryPath);
@@ -85,6 +89,20 @@ async function checkDirectoryFiles(directoryPath) {
 		const currentFileExists = await fileExists(filePath);
 
 		if (!currentFileExists) errors.push(fileToCheck);
+	}
+
+	for (const regexFileToCheck of regexFilesToCheck) {
+		const files = await fs.readdir(directoryPath);
+		let foundFile = false;
+
+		for (const file of files) {
+			if (regexFileToCheck.test(file)) {
+				foundFile = true;
+				break;
+			}
+		}
+
+		if (!foundFile) errors.push(regexFileToCheck.toString());
 	}
 
 	if (isJavascriptDirectory) {
