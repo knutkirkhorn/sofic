@@ -6,9 +6,11 @@ import {checkRepoFiles} from './index.js';
 const cli = meow(
 	`
 	Usage
+	  $ sofic
 	  $ sofic check <path>
 
 	Examples
+	  $ sofic
 	  $ sofic check C:\\Users\\knut\\dev\\sofic
 	  $ sofic check C:\\Users\\knut\\dev
 `,
@@ -22,10 +24,13 @@ const command = cli.input[0];
 if (command === 'check') {
 	const directoryPath = cli.input[1];
 	await checkRepoFiles(directoryPath);
-} else {
+} else if (command) {
+	// If the command is set, but not one of the supported commands, print an error
 	console.error(
 		chalk.red(
 			`Unknown command \`${command}\`. See \`sofic --help\` for available commands.`,
 		),
 	);
+} else {
+	await checkRepoFiles();
 }
