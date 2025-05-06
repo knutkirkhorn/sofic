@@ -53,7 +53,7 @@ async function addEslintConfig() {
 }
 
 export async function addEslint() {
-	console.log('Adding eslint...');
+	console.log('Adding ESLint...');
 
 	// Install packages
 	await installEslintPackages();
@@ -61,5 +61,5 @@ export async function addEslint() {
 	// Add config
 	await addEslintConfig();
 
-	console.log('Finished adding eslint');
+	console.log('Finished adding ESLint');
 }
