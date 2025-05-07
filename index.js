@@ -69,6 +69,22 @@ async function checkGithubActions(directoryPath) {
 	return ['GitHub Actions: missing workflow file in `.github/workflows`'];
 }
 
+async function checkGitLabCi(directoryPath) {
+	const files = await fs.readdir(directoryPath);
+
+	// Check all the files in the directory and see if any ends with `.gitlab-ci.yml`
+	for (const file of files) {
+		const filePath = path.join(directoryPath, file);
+		const stats = await fs.stat(filePath);
+
+		if (!stats.isDirectory() && file.endsWith('.gitlab-ci.yml')) {
+			return [];
+		}
+	}
+
+	return ['GitLab CI: missing `.gitlab-ci.yml` file'];
+}
+
 async function checkDirectoryFiles(directoryPath) {
 	const filesToCheck = [...defaultFilesToCheck];
 	const regexFilesToCheck = [];
@@ -118,6 +134,9 @@ async function checkDirectoryFiles(directoryPath) {
 		if (gitHostname === 'github.com') {
 			const githubActionsErrors = await checkGithubActions(directoryPath);
 			errors.push(...githubActionsErrors);
+		} else if (gitHostname === 'gitlab.com') {
+			const gitlabCiErrors = await checkGitLabCi(directoryPath);
+			errors.push(...gitlabCiErrors);
 		}
 	}
 
