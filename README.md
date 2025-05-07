@@ -16,9 +16,13 @@ npm install --global sofic
 $ sofic --help
 
   Usage
+    $ sofic
+    $ sofic add <tool>
     $ sofic check <path>
 
   Examples
+    $ sofic
+    $ sofic add eslint
     $ sofic check C:\Users\knut\dev\sofic
     $ sofic check C:\Users\knut\dev
 ```

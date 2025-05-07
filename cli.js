@@ -13,6 +13,7 @@ const cli = meow(
 
 	Examples
 	  $ sofic
+	  $ sofic add eslint
 	  $ sofic check C:\\Users\\knut\\dev\\sofic
 	  $ sofic check C:\\Users\\knut\\dev
 `,
