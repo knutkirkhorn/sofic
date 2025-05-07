@@ -110,8 +110,10 @@ async function checkDirectoryFiles(directoryPath) {
 		errors.push(...javascriptErrors);
 	}
 
-	const githubActionsErrors = await checkGithubActions(directoryPath);
-	errors.push(...githubActionsErrors);
+	if (isDirectoryGitRepo) {
+		const githubActionsErrors = await checkGithubActions(directoryPath);
+		errors.push(...githubActionsErrors);
+	}
 
 	if (errors.length > 0) {
 		console.log(`\n${chalk.underline(directoryPath)}`);
