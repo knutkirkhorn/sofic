@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import stripJsonComments from 'strip-json-comments';
 import {fileExists} from '../util.js';
 
 export async function hasPackageJson(directoryPath) {
@@ -11,8 +10,6 @@ export async function hasPackageJson(directoryPath) {
 async function checkEslintPlugin(
 	packageJson,
 	hasDevelopmentDependencies,
-	eslintConfigExists,
-	eslintConfig,
 	pluginName,
 ) {
 	const hasInstalledEslintPlugin = hasDevelopmentDependencies
@@ -20,16 +17,9 @@ async function checkEslintPlugin(
 				`eslint-plugin-${pluginName}`,
 			)
 		: false;
-	const hasEnabledEslintPlugin = eslintConfigExists
-		? eslintConfig.extends.includes(`plugin:${pluginName}/recommended`)
-		: false;
 
 	if (!hasInstalledEslintPlugin) {
 		return `package.json: missing \`eslint-plugin-${pluginName}\` in \`devDependencies\``;
-	}
-
-	if (eslintConfigExists && !hasEnabledEslintPlugin) {
-		return `.eslintrc.json: missing \`plugin:${pluginName}/recommended\` in \`extends\``;
 	}
 }
 
@@ -37,11 +27,6 @@ export async function checkEslintConfig(directoryPath) {
 	const packageJson = JSON.parse(
 		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
 	);
-	const eslintConfigPath = path.join(directoryPath, '.eslintrc.json');
-	const eslintConfigExists = await fileExists(eslintConfigPath);
-	const eslintConfig = eslintConfigExists
-		? JSON.parse(stripJsonComments(await fs.readFile(eslintConfigPath, 'utf8')))
-		: {};
 
 	const eslintErrors = [];
 	const hasDevelopmentDependencies = packageJson.devDependencies !== undefined;
@@ -62,8 +47,6 @@ export async function checkEslintConfig(directoryPath) {
 		const avaEslintError = await checkEslintPlugin(
 			packageJson,
 			hasDevelopmentDependencies,
-			eslintConfigExists,
-			eslintConfig,
 			'ava',
 		);
 		if (avaEslintError) eslintErrors.push(avaEslintError);
@@ -72,8 +55,6 @@ export async function checkEslintConfig(directoryPath) {
 	const unicornEslintError = await checkEslintPlugin(
 		packageJson,
 		hasDevelopmentDependencies,
-		eslintConfigExists,
-		eslintConfig,
 		'unicorn',
 	);
 	if (unicornEslintError) eslintErrors.push(unicornEslintError);
