@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
+import gitRemoteOriginUrl from 'git-remote-origin-url';
 import logSymbols from 'log-symbols';
 import {checkJavascriptErrors, hasPackageJson} from './checkers/javascript.js';
 import {fileExists} from './util.js';
@@ -111,8 +112,13 @@ async function checkDirectoryFiles(directoryPath) {
 	}
 
 	if (isDirectoryGitRepo) {
-		const githubActionsErrors = await checkGithubActions(directoryPath);
-		errors.push(...githubActionsErrors);
+		const gitRemote = await gitRemoteOriginUrl({cwd: directoryPath});
+		const gitHostname = new URL(gitRemote).hostname;
+
+		if (gitHostname === 'github.com') {
+			const githubActionsErrors = await checkGithubActions(directoryPath);
+			errors.push(...githubActionsErrors);
+		}
 	}
 
 	if (errors.length > 0) {
