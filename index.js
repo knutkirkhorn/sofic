@@ -91,8 +91,16 @@ async function checkDirectoryFiles(directoryPath) {
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
 	if (isJavascriptDirectory) {
 		regexFilesToCheck.push(
-			/^eslint\.config\.(js|mjs|ts)$/,
-			/^prettier\.config\.(js|mjs|ts)$/,
+			{
+				regex: /^eslint\.config\.(js|mjs|ts)$/,
+				error:
+					'ESLint: missing config (`eslint.config.js`, `eslint.config.mjs`, or `eslint.config.ts`)',
+			},
+			{
+				regex: /^prettier\.config\.(js|mjs|ts)$/,
+				error:
+					'Prettier: missing config (`prettier.config.js`, `prettier.config.mjs`, or `prettier.config.ts`)',
+			},
 		);
 	}
 
@@ -113,13 +121,13 @@ async function checkDirectoryFiles(directoryPath) {
 		let foundFile = false;
 
 		for (const file of files) {
-			if (regexFileToCheck.test(file)) {
+			if (regexFileToCheck.regex.test(file)) {
 				foundFile = true;
 				break;
 			}
 		}
 
-		if (!foundFile) errors.push(regexFileToCheck.toString());
+		if (!foundFile) errors.push(regexFileToCheck.error);
 	}
 
 	if (isJavascriptDirectory) {
