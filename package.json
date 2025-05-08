@@ -14,7 +14,8 @@
 		"cli.js",
 		"index.js",
 		"util.js",
-		"checkers"
+		"checkers",
+		"commands"
 	],
 	"repository": {
 		"type": "git",
