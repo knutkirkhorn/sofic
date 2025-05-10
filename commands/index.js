@@ -1,3 +1,4 @@
+import {addEditorConfig} from './add/editorconfig.js';
 import {addEslint} from './add/eslint.js';
 import {addPrettier} from './add/prettier.js';
 
@@ -10,6 +11,10 @@ export async function add(tool) {
 		}
 		case 'prettier': {
 			await addPrettier();
+			break;
+		}
+		case 'editorconfig': {
+			await addEditorConfig();
 			break;
 		}
 		default: {
