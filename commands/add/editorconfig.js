@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import task from 'tasuku';
 
 export async function addEditorConfig() {
-	task('Adding EditorConfig', async ({setTitle, setOutput}) => {
+	await task('Adding EditorConfig', async ({setTitle, setOutput}) => {
 		// Read config snippet
 		const __filename = fileURLToPath(import.meta.url);
 		const __dirname = path.dirname(__filename);
