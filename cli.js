@@ -14,11 +14,17 @@ const cli = meow(
 	Examples
 	  $ sofic
 	  $ sofic add eslint
+	  $ sofic add --list
 	  $ sofic check C:\\Users\\knut\\dev\\sofic
 	  $ sofic check C:\\Users\\knut\\dev
 `,
 	{
 		importMeta: import.meta,
+		flags: {
+			list: {
+				type: 'boolean',
+			},
+		},
 	},
 );
 
@@ -29,7 +35,7 @@ if (command === 'check') {
 	await checkRepoFiles(directoryPath);
 } else if (command === 'add') {
 	const tool = cli.input[1];
-	await add(tool);
+	await add(tool, cli.flags);
 } else if (command) {
 	// If the command is set, but not one of the supported commands, print an error
 	console.error(

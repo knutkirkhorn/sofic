@@ -23,6 +23,7 @@ $ sofic --help
   Examples
     $ sofic
     $ sofic add eslint
+    $ sofic add --list
     $ sofic check C:\Users\knut\dev\sofic
     $ sofic check C:\Users\knut\dev
 ```
