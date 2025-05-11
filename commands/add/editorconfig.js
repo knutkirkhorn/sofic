@@ -15,7 +15,7 @@ export async function addEditorConfig() {
 		);
 
 		// Create new EditorConfig file
-		await fs.writeFile('.editorconfig2', editorConfigSnippet);
+		await fs.writeFile('.editorconfig', editorConfigSnippet);
 
 		setTitle('Added EditorConfig');
 		setOutput('.editorconfig');
