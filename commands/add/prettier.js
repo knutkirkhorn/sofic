@@ -3,10 +3,9 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execa} from 'execa';
 import {detect, resolveCommand} from 'package-manager-detector';
+import task from 'tasuku';
 
 async function installPrettierPackages() {
-	console.log('Installing Prettier packages...');
-
 	// Get what package manager is used for given project
 	const packageManager = await detect({
 		cwd: process.cwd(),
@@ -23,13 +22,9 @@ async function installPrettierPackages() {
 
 	// Run the install packages command
 	await execa(command, args);
-
-	console.log('Installed Prettier packages');
 }
 
 async function addPrettierConfig() {
-	console.log('Adding Prettier config...');
-
 	// Read config snippet
 	const __filename = fileURLToPath(import.meta.url);
 	const __dirname = path.dirname(__filename);
@@ -41,18 +36,18 @@ async function addPrettierConfig() {
 
 	// Create new Prettier config file
 	await fs.writeFile('prettier.config.mjs', prettierConfigSnippet);
-
-	console.log('Added Prettier config (`prettier.config.mjs`)');
 }
 
 export async function addPrettier() {
-	console.log('Adding Prettier...');
-
-	// Install packages
-	await installPrettierPackages();
-
-	// Add config
-	await addPrettierConfig();
-
-	console.log('Finished adding Prettier');
+	await Promise.all([
+		task('Installing Prettier packages', async ({setTitle}) => {
+			await installPrettierPackages();
+			setTitle('Installed Prettier packages');
+		}),
+		task('Adding Prettier config', async ({setTitle, setOutput}) => {
+			await addPrettierConfig();
+			setTitle('Added Prettier config');
+			setOutput('prettier.config.mjs');
+		}),
+	]);
 }
