@@ -45,7 +45,11 @@ async function ensureUserConfigFileExists() {
 
 	const config = {
 		version: soficPackageJson.version,
-		configs: {},
+		configs: {
+			editorconfig: {},
+			eslint: {},
+			prettier: {},
+		},
 	};
 	// Save the config
 	await fs.writeFile(configFile, JSON.stringify(config, undefined, 2));
