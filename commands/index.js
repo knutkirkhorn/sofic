@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {fileExists} from '../util.js';
 import {addEditorConfig} from './add/editorconfig.js';
 import {addEslint} from './add/eslint.js';
@@ -36,9 +37,14 @@ async function ensureUserConfigFileExists() {
 
 	// Use version from the current package.json
 	// The version will be for future potential breaking changes
-	const packageJson = JSON.parse(await fs.readFile('./package.json', 'utf8'));
+	const __filename = fileURLToPath(import.meta.url);
+	const __dirname = path.dirname(__filename);
+	const soficPackageJson = JSON.parse(
+		await fs.readFile(path.join(__dirname, '../package.json'), 'utf8'),
+	);
+
 	const config = {
-		version: packageJson.version,
+		version: soficPackageJson.version,
 		configs: {},
 	};
 	// Save the config
