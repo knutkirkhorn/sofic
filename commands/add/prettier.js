@@ -62,7 +62,6 @@ async function readImportsFromConfig(configFilePath) {
 	// TODO: do this for the prettier configs also
 
 	const parsedPrettierConfig = await import(`file://${configFilePath}`);
-	console.log('parsedPrettierConfig', parsedPrettierConfig);
 	const packageImports = parsedPrettierConfig.default.plugins.map(plugin => {
 		// some/thing -> some
 		// @ianvs/prettier-plugin-sort-imports -> @ianvs/prettier-plugin-sort-imports
