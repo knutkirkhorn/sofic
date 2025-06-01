@@ -67,5 +67,5 @@ test('parse imports from config file', async t => {
 
 	const result = await readImportsFromConfig(mockConfig);
 
-	t.deepEqual(result, ['eslint', '@eslint/js', 'eslint', 'some-package']);
+	t.deepEqual(result, ['eslint', '@eslint/js', 'some-package']);
 });

@@ -25,9 +25,6 @@ async function installEslintPackages(packages) {
 }
 
 export async function readImportsFromConfig(configFile) {
-	// TODO: needs test for this, test with the default configs
-	// TODO: do this for the prettier configs also
-
 	const imports = [...(await parseImports(configFile))];
 	const packageImports = imports
 		.filter(
@@ -47,7 +44,9 @@ export async function readImportsFromConfig(configFile) {
 
 			return import_.moduleSpecifier.value;
 		});
-	return packageImports;
+
+	// Convert to Set and back to array to remove duplicates
+	return [...new Set(packageImports)];
 }
 
 export async function addEslint() {
