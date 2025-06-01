@@ -1,23 +1,22 @@
 import fs from 'node:fs/promises';
-import path from 'node:path';
-import {fileURLToPath} from 'node:url';
 import task from 'tasuku';
+import {askForConfigOption} from './common.js';
 
 export async function addEditorConfig() {
+	const {configFilePath, configFileName} =
+		await askForConfigOption('editorconfig');
+
+	// If the user renames or deletes a config, it will return early
+	if (!configFilePath) return;
+
 	await task('Adding EditorConfig', async ({setTitle, setOutput}) => {
-		// Read config snippet
-		const __filename = fileURLToPath(import.meta.url);
-		const __dirname = path.dirname(__filename);
-		const snippetsDirectory = path.join(__dirname, 'snippets');
-		const editorConfigSnippet = await fs.readFile(
-			path.join(snippetsDirectory, '.editorconfig'),
-			'utf8',
-		);
+		// Read config
+		const editorConfigFile = await fs.readFile(configFilePath, 'utf8');
 
 		// Create new EditorConfig file
-		await fs.writeFile('.editorconfig', editorConfigSnippet);
+		await fs.writeFile('.editorconfig', editorConfigFile);
 
 		setTitle('Added EditorConfig');
-		setOutput('.editorconfig');
+		setOutput(configFileName);
 	});
 }

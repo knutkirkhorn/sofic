@@ -1,6 +1,7 @@
 import test from 'ava';
 import mock from 'mock-fs';
 import {checkPrettierConfig} from '../checkers/javascript.js';
+import {readImportsFromConfig} from '../commands/add/prettier.js';
 
 test.serial('has dependencies', async t => {
 	mock({
@@ -73,6 +74,34 @@ test.serial('has all prettier and tailwind dependencies', async t => {
 
 	const prettierConfigErrors = await checkPrettierConfig('.');
 	t.deepEqual(prettierConfigErrors, []);
+
+	mock.restore();
+});
+
+test('parse plugins imports from config file', async t => {
+	// Mock a Prettier config file
+	mock({
+		'prettier.config.js': `
+			export default {
+				plugins: [
+					'prettier-plugin-tailwindcss',
+					'@ianvs/prettier-plugin-sort-imports',
+					'some/other-plugin',
+					'some/another-plugin',
+				]
+			}
+		`,
+	});
+
+	const result = await readImportsFromConfig(
+		process.cwd() + '/prettier.config.js',
+	);
+
+	t.deepEqual(result, [
+		'prettier-plugin-tailwindcss',
+		'@ianvs/prettier-plugin-sort-imports',
+		'some',
+	]);
 
 	mock.restore();
 });

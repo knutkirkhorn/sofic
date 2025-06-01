@@ -1,11 +1,10 @@
 import fs from 'node:fs/promises';
-import path from 'node:path';
-import {fileURLToPath} from 'node:url';
 import {execa} from 'execa';
 import {detect, resolveCommand} from 'package-manager-detector';
 import task from 'tasuku';
+import {askForConfigOption} from './common.js';
 
-async function installPrettierPackages() {
+async function installPrettierPackages(packages) {
 	// Get what package manager is used for given project
 	const packageManager = await detect({
 		cwd: process.cwd(),
@@ -17,37 +16,47 @@ async function installPrettierPackages() {
 		packageManager?.agent || 'npm',
 		'add',
 		// Use `-D` to add packages as dev dependencies
-		['-D', 'prettier', '@ianvs/prettier-plugin-sort-imports'],
+		['-D', ...packages],
 	);
 
 	// Run the install packages command
 	await execa(command, args);
 }
 
-async function addPrettierConfig() {
-	// Read config snippet
-	const __filename = fileURLToPath(import.meta.url);
-	const __dirname = path.dirname(__filename);
-	const snippetsDirectory = path.join(__dirname, 'snippets');
-	const prettierConfigSnippet = await fs.readFile(
-		path.join(snippetsDirectory, 'prettier.config.mjs'),
-		'utf8',
-	);
+export async function readImportsFromConfig(configFilePath) {
+	const parsedPrettierConfig = await import(`file://${configFilePath}`);
+	const packageImports = parsedPrettierConfig.default.plugins.map(plugin => {
+		// some/thing -> some
+		// @ianvs/prettier-plugin-sort-imports -> @ianvs/prettier-plugin-sort-imports
+		if (!plugin.startsWith('@') && plugin.includes('/')) {
+			return plugin.split('/')[0];
+		}
 
-	// Create new Prettier config file
-	await fs.writeFile('prettier.config.mjs', prettierConfigSnippet);
+		return plugin;
+	});
+
+	// Convert to Set and back to array to remove duplicates
+	return [...new Set(packageImports)];
 }
 
 export async function addPrettier() {
+	const {configFilePath, configFileName} = await askForConfigOption('prettier');
+
+	if (!configFilePath) return;
+
 	await Promise.all([
 		task('Installing Prettier packages', async ({setTitle}) => {
-			await installPrettierPackages();
+			const packagesToInstall = await readImportsFromConfig(configFilePath);
+			await installPrettierPackages(packagesToInstall);
 			setTitle('Installed Prettier packages');
 		}),
 		task('Adding Prettier config', async ({setTitle, setOutput}) => {
-			await addPrettierConfig();
+			// Read config
+			const prettierConfigFile = await fs.readFile(configFilePath, 'utf8');
+			// Create new Prettier config file
+			await fs.writeFile(configFileName, prettierConfigFile);
 			setTitle('Added Prettier config');
-			setOutput('prettier.config.mjs');
+			setOutput(configFileName);
 		}),
 	]);
 }

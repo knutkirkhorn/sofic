@@ -1,11 +1,11 @@
 import fs from 'node:fs/promises';
-import path from 'node:path';
-import {fileURLToPath} from 'node:url';
 import {execa} from 'execa';
 import {detect, resolveCommand} from 'package-manager-detector';
+import {parseImports} from 'parse-imports';
 import task from 'tasuku';
+import {askForConfigOption} from './common.js';
 
-async function installEslintPackages() {
+async function installEslintPackages(packages) {
 	// Get what package manager is used for given project
 	const packageManager = await detect({
 		cwd: process.cwd(),
@@ -17,44 +17,57 @@ async function installEslintPackages() {
 		packageManager?.agent || 'npm',
 		'add',
 		// Use `-D` to add packages as dev dependencies
-		[
-			'-D',
-			'@eslint/js',
-			'eslint',
-			'eslint-plugin-unicorn',
-			'eslint-config-prettier',
-			'globals',
-		],
+		['-D', ...packages],
 	);
 
 	// Run the install packages command
 	await execa(command, args);
 }
 
-async function addEslintConfig() {
-	// Read config snippet
-	const __filename = fileURLToPath(import.meta.url);
-	const __dirname = path.dirname(__filename);
-	const snippetsDirectory = path.join(__dirname, 'snippets');
-	const eslintConfigSnippet = await fs.readFile(
-		path.join(snippetsDirectory, 'eslint.config.mjs'),
-		'utf8',
-	);
+export async function readImportsFromConfig(configFile) {
+	const imports = [...(await parseImports(configFile))];
+	const packageImports = imports
+		.filter(
+			import_ =>
+				import_.moduleSpecifier.type === 'package' &&
+				!import_.moduleSpecifier.value.startsWith('node:'),
+		)
+		.map(import_ => {
+			// eslint/config -> eslint
+			// @eslint/js -> @eslint/js
+			if (
+				!import_.moduleSpecifier.value.startsWith('@') &&
+				import_.moduleSpecifier.value.includes('/')
+			) {
+				return import_.moduleSpecifier.value.split('/')[0];
+			}
 
-	// Create new ESLint config file
-	await fs.writeFile('eslint.config.mjs', eslintConfigSnippet);
+			return import_.moduleSpecifier.value;
+		});
+
+	// Convert to Set and back to array to remove duplicates
+	return [...new Set(packageImports)];
 }
 
 export async function addEslint() {
+	const {configFilePath, configFileName} = await askForConfigOption('eslint');
+
+	if (!configFilePath) return;
+
+	// Read config
+	const eslintConfigFile = await fs.readFile(configFilePath, 'utf8');
+
 	await Promise.all([
 		task('Installing ESLint packages', async ({setTitle}) => {
-			await installEslintPackages();
+			const packagesToInstall = await readImportsFromConfig(eslintConfigFile);
+			await installEslintPackages(packagesToInstall);
 			setTitle('Installed ESLint packages');
 		}),
 		task('Adding ESLint config', async ({setTitle, setOutput}) => {
-			await addEslintConfig();
+			// Create new ESLint config file
+			await fs.writeFile(configFileName, eslintConfigFile);
 			setTitle('Added ESLint config');
-			setOutput('eslint.config.mjs');
+			setOutput(configFileName);
 		}),
 	]);
 }
