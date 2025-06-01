@@ -80,11 +80,13 @@ export async function addPrettier() {
 				name: 'Rename config',
 				value: 'rename',
 				description: 'Rename a config',
+				disabled: Object.keys(userConfigs.configs.prettier).length === 0,
 			},
 			{
 				name: 'Delete config',
 				value: 'delete',
 				description: 'Delete a config',
+				disabled: Object.keys(userConfigs.configs.prettier).length === 0,
 			},
 			new Separator(),
 		],

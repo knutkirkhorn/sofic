@@ -41,11 +41,13 @@ export async function addEditorConfig() {
 				name: 'Rename config',
 				value: 'rename',
 				description: 'Rename a config',
+				disabled: Object.keys(userConfigs.configs.editorconfig).length === 0,
 			},
 			{
 				name: 'Delete config',
 				value: 'delete',
 				description: 'Delete a config',
+				disabled: Object.keys(userConfigs.configs.editorconfig).length === 0,
 			},
 			new Separator(),
 		],
