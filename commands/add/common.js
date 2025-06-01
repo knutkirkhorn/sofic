@@ -4,6 +4,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {input, select, Separator} from '@inquirer/prompts';
 import logSymbols from 'log-symbols';
+import {v4 as uuidv4} from 'uuid';
 import {z} from 'zod/v4';
 import {fileExists} from '../../util.js';
 
@@ -182,18 +183,24 @@ export async function askForConfigOption(configType, configFileName) {
 
 		// Copy it into the <home-directory>/.sofic/configs/<configType>/<next-index>/<config-file-name>
 		const homeDirectory = os.homedir();
-		const nextIndex = Object.keys(userConfigs.configs[configType]).length + 1;
+		const newDirectoryName = uuidv4();
 		const newConfigPath = path.join(
 			homeDirectory,
 			'.sofic',
 			'configs',
 			configType,
-			`${nextIndex}`,
+			newDirectoryName,
 			configFileName,
 		);
 		// Create new config directory
 		await fs.mkdir(
-			path.join(homeDirectory, '.sofic', 'configs', configType, `${nextIndex}`),
+			path.join(
+				homeDirectory,
+				'.sofic',
+				'configs',
+				configType,
+				newDirectoryName,
+			),
 			{
 				recursive: true,
 			},
@@ -205,7 +212,7 @@ export async function askForConfigOption(configType, configFileName) {
 
 		// Update user configs
 		userConfigs.configs[configType][configName] = {
-			relative_path: nextIndex.toString(),
+			relative_path: newDirectoryName,
 		};
 
 		// Save updated user configs
