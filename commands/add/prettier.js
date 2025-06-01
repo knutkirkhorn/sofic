@@ -23,7 +23,7 @@ async function installPrettierPackages(packages) {
 	await execa(command, args);
 }
 
-async function readImportsFromConfig(configFilePath) {
+export async function readImportsFromConfig(configFilePath) {
 	// TODO: needs test for this, test with the default configs
 	// TODO: do this for the prettier configs also
 
