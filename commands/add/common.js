@@ -156,112 +156,122 @@ export async function askForConfigOption(configType) {
 
 	let configFilePath = '';
 
-	// TODO: fix this:
-	// eslint-disable-next-line unicorn/prefer-switch
-	if (configAnswer === 'new') {
-		// Create new config
-		const configName = await input({
-			message: 'Config name',
-			validate: value => {
-				if (!value) return 'Config name is required';
+	switch (configAnswer) {
+		case 'new': {
+			// Create new config
+			const configName = await input({
+				message: 'Config name',
+				validate: value => {
+					if (!value) return 'Config name is required';
 
-				if (Object.keys(userConfigs.configs[configType]).includes(value)) {
-					return 'Config with this name already exists';
-				}
+					if (Object.keys(userConfigs.configs[configType]).includes(value)) {
+						return 'Config with this name already exists';
+					}
 
-				return true;
-			},
-		});
+					return true;
+				},
+			});
 
-		const configPath = await input({
-			message: 'Config path',
-			validate: value => {
-				if (!value) return 'Config path is required';
-				return true;
-			},
-		});
+			const configPath = await input({
+				message: 'Config path',
+				validate: value => {
+					if (!value) return 'Config path is required';
+					return true;
+				},
+			});
 
-		// Check if the input path is a valid file
-		const configFileExists = await fileExists(configPath);
-		if (!configFileExists) {
-			throw new Error('Config file does not exist');
-		}
+			// Check if the input path is a valid file
+			const configFileExists = await fileExists(configPath);
+			if (!configFileExists) {
+				throw new Error('Config file does not exist');
+			}
 
-		// Copy it into the <home-directory>/.sofic/configs/<configType>/<next-index>/<config-file-name>
-		const homeDirectory = os.homedir();
-		const newDirectoryName = uuidv4();
-		const newFileName = path.basename(configPath);
-		const newConfigPath = path.join(
-			homeDirectory,
-			'.sofic',
-			'configs',
-			configType,
-			newDirectoryName,
-			newFileName,
-		);
-		// Create new config directory
-		await fs.mkdir(
-			path.join(
+			// Copy it into the <home-directory>/.sofic/configs/<configType>/<next-index>/<config-file-name>
+			const homeDirectory = os.homedir();
+			const newDirectoryName = uuidv4();
+			const newFileName = path.basename(configPath);
+			const newConfigPath = path.join(
 				homeDirectory,
 				'.sofic',
 				'configs',
 				configType,
 				newDirectoryName,
-			),
-			{
-				recursive: true,
-			},
-		);
+				newFileName,
+			);
+			// Create new config directory
+			await fs.mkdir(
+				path.join(
+					homeDirectory,
+					'.sofic',
+					'configs',
+					configType,
+					newDirectoryName,
+				),
+				{
+					recursive: true,
+				},
+			);
 
-		// Write new config file
-		const userSelectedConfigFile = await fs.readFile(configPath, 'utf8');
-		await fs.writeFile(newConfigPath, userSelectedConfigFile);
+			// Write new config file
+			const userSelectedConfigFile = await fs.readFile(configPath, 'utf8');
+			await fs.writeFile(newConfigPath, userSelectedConfigFile);
 
-		// Update user configs
-		userConfigs.configs[configType][configName] = {
-			relative_path: `${newDirectoryName}/${newFileName}`,
-		};
+			// Update user configs
+			userConfigs.configs[configType][configName] = {
+				relative_path: `${newDirectoryName}/${newFileName}`,
+			};
 
-		// Save updated user configs
-		const userConfigFilePath = path.join(
-			homeDirectory,
-			'.sofic',
-			'configs',
-			'configs.json',
-		);
-		await fs.writeFile(
-			userConfigFilePath,
-			JSON.stringify(userConfigs, undefined, 2),
-		);
-		console.log(`${logSymbols.success} Saved config file '${configName}'`);
+			// Save updated user configs
+			const userConfigFilePath = path.join(
+				homeDirectory,
+				'.sofic',
+				'configs',
+				'configs.json',
+			);
+			await fs.writeFile(
+				userConfigFilePath,
+				JSON.stringify(userConfigs, undefined, 2),
+			);
+			console.log(`${logSymbols.success} Saved config file '${configName}'`);
 
-		configFilePath = newConfigPath;
-	} else if (configAnswer === 'default') {
-		// Use default config
-		const __filename = fileURLToPath(import.meta.url);
-		const __dirname = path.dirname(__filename);
-		const snippetsDirectory = path.join(__dirname, 'snippets');
-		configFilePath = path.join(
-			snippetsDirectory,
-			defaultConfigFileNames[configType],
-		);
-	} else if (configAnswer === 'rename') {
-		await askToRenameConfig(userConfigs, configType);
-		return {configFilePath: undefined, configFileName: undefined};
-	} else if (configAnswer === 'delete') {
-		await askToDeleteConfig(userConfigs, configType);
-		return {configFilePath: undefined, configFileName: undefined};
-	} else {
-		// Use user config
-		const homeDirectory = os.homedir();
-		const configName = configAnswer.replace('user-', '');
-		configFilePath = path.join(
-			homeDirectory,
-			'.sofic',
-			'configs',
-			configType,
-			userConfigs.configs[configType][configName].relative_path,
-		);
+			configFilePath = newConfigPath;
+
+			break;
+		}
+		case 'default': {
+			// Use default config
+			const __filename = fileURLToPath(import.meta.url);
+			const __dirname = path.dirname(__filename);
+			const snippetsDirectory = path.join(__dirname, 'snippets');
+			configFilePath = path.join(
+				snippetsDirectory,
+				defaultConfigFileNames[configType],
+			);
+
+			break;
+		}
+		case 'rename': {
+			await askToRenameConfig(userConfigs, configType);
+			return {configFilePath: undefined, configFileName: undefined};
+		}
+		case 'delete': {
+			await askToDeleteConfig(userConfigs, configType);
+			return {configFilePath: undefined, configFileName: undefined};
+		}
+		default: {
+			// Use user config
+			const homeDirectory = os.homedir();
+			const configName = configAnswer.replace('user-', '');
+			configFilePath = path.join(
+				homeDirectory,
+				'.sofic',
+				'configs',
+				configType,
+				userConfigs.configs[configType][configName].relative_path,
+			);
+
+			break;
+		}
 	}
 
 	const configFileName = path.basename(configFilePath);
