@@ -24,9 +24,6 @@ async function installPrettierPackages(packages) {
 }
 
 export async function readImportsFromConfig(configFilePath) {
-	// TODO: needs test for this, test with the default configs
-	// TODO: do this for the prettier configs also
-
 	const parsedPrettierConfig = await import(`file://${configFilePath}`);
 	const packageImports = parsedPrettierConfig.default.plugins.map(plugin => {
 		// some/thing -> some
@@ -38,7 +35,8 @@ export async function readImportsFromConfig(configFilePath) {
 		return plugin;
 	});
 
-	return packageImports;
+	// Convert to Set and back to array to remove duplicates
+	return [...new Set(packageImports)];
 }
 
 export async function addPrettier() {

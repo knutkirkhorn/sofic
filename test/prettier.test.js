@@ -87,6 +87,7 @@ test('parse plugins imports from config file', async t => {
 					'prettier-plugin-tailwindcss',
 					'@ianvs/prettier-plugin-sort-imports',
 					'some/other-plugin',
+					'some/another-plugin',
 				]
 			}
 		`,
