@@ -9,6 +9,7 @@ import {detect, resolveCommand} from 'package-manager-detector';
 import task from 'tasuku';
 import {z} from 'zod/v4';
 import {fileExists} from '../../util.js';
+import {askToDeleteConfig, askToRenameConfig} from './common.js';
 
 async function installPrettierPackages(packages) {
 	// Get what package manager is used for given project
@@ -196,74 +197,10 @@ export async function addPrettier() {
 		const snippetsDirectory = path.join(__dirname, 'snippets');
 		configFilePath = path.join(snippetsDirectory, 'prettier.config.mjs');
 	} else if (configAnswer === 'rename') {
-		// Select which config to rename
-		const configToRename = await select({
-			message: 'Select a config to rename',
-			choices: Object.keys(userConfigs.configs.prettier).map(key => ({
-				name: key,
-				value: key,
-			})),
-		});
-
-		// Rename config
-		const newConfigName = await input({
-			message: 'New config name',
-			validate: value => {
-				if (!value) return 'Config name is required';
-				if (Object.keys(userConfigs.configs.prettier).includes(value)) {
-					return 'Config with this name already exists';
-				}
-				return true;
-			},
-		});
-
-		// Update user configs
-		userConfigs.configs.prettier[newConfigName] =
-			userConfigs.configs.prettier[configToRename];
-		delete userConfigs.configs.prettier[configToRename];
-
-		// Save updated user configs
-		const homeDirectory = os.homedir();
-		const userConfigFilePath = path.join(
-			homeDirectory,
-			'.sofic',
-			'configs',
-			'configs.json',
-		);
-		await fs.writeFile(
-			userConfigFilePath,
-			JSON.stringify(userConfigs, undefined, 2),
-		);
-		console.log(
-			`${logSymbols.success} Renamed config '${configToRename}' to '${newConfigName}'`,
-		);
+		await askToRenameConfig(userConfigs, 'prettier');
 		return;
 	} else if (configAnswer === 'delete') {
-		// Delete config
-		const configToDelete = await select({
-			message: 'Select a config to delete',
-			choices: Object.keys(userConfigs.configs.prettier).map(key => ({
-				name: key,
-				value: key,
-			})),
-		});
-
-		// Delete config
-		delete userConfigs.configs.prettier[configToDelete];
-
-		// Save updated user configs
-		const homeDirectory = os.homedir();
-		const userConfigFilePath = path.join(
-			homeDirectory,
-			'.sofic',
-			'configs',
-			'configs.json',
-		);
-		await fs.writeFile(
-			userConfigFilePath,
-			JSON.stringify(userConfigs, undefined, 2),
-		);
-		console.log(`${logSymbols.success} Deleted config '${configToDelete}'`);
+		await askToDeleteConfig(userConfigs, 'prettier');
 		return;
 	} else {
 		// Use user config
