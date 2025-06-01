@@ -51,10 +51,7 @@ async function readImportsFromConfig(configFile) {
 }
 
 export async function addEslint() {
-	const configFilePath = await askForConfigOption(
-		'eslint',
-		'eslint.config.mjs',
-	);
+	const {configFilePath, configFileName} = await askForConfigOption('eslint');
 
 	if (!configFilePath) return;
 
@@ -69,9 +66,9 @@ export async function addEslint() {
 		}),
 		task('Adding ESLint config', async ({setTitle, setOutput}) => {
 			// Create new ESLint config file
-			await fs.writeFile('eslint.config.mjs', eslintConfigFile);
+			await fs.writeFile(configFileName, eslintConfigFile);
 			setTitle('Added ESLint config');
-			setOutput('eslint.config.mjs');
+			setOutput(configFileName);
 		}),
 	]);
 }

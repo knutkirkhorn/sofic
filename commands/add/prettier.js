@@ -42,10 +42,7 @@ async function readImportsFromConfig(configFilePath) {
 }
 
 export async function addPrettier() {
-	const configFilePath = await askForConfigOption(
-		'prettier',
-		'prettier.config.mjs',
-	);
+	const {configFilePath, configFileName} = await askForConfigOption('prettier');
 
 	if (!configFilePath) return;
 
@@ -59,9 +56,9 @@ export async function addPrettier() {
 			// Read config
 			const prettierConfigFile = await fs.readFile(configFilePath, 'utf8');
 			// Create new Prettier config file
-			await fs.writeFile('prettier.config.mjs', prettierConfigFile);
+			await fs.writeFile(configFileName, prettierConfigFile);
 			setTitle('Added Prettier config');
-			setOutput('prettier.config.mjs');
+			setOutput(configFileName);
 		}),
 	]);
 }

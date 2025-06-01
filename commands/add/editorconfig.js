@@ -3,10 +3,8 @@ import task from 'tasuku';
 import {askForConfigOption} from './common.js';
 
 export async function addEditorConfig() {
-	const configFilePath = await askForConfigOption(
-		'editorconfig',
-		'.editorconfig',
-	);
+	const {configFilePath, configFileName} =
+		await askForConfigOption('editorconfig');
 
 	// If the user renames or deletes a config, it will return early
 	if (!configFilePath) return;
@@ -19,6 +17,6 @@ export async function addEditorConfig() {
 		await fs.writeFile('.editorconfig', editorConfigFile);
 
 		setTitle('Added EditorConfig');
-		setOutput('.editorconfig');
+		setOutput(configFileName);
 	});
 }

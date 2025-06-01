@@ -106,8 +106,14 @@ export async function askToDeleteConfig(userConfigs, configType) {
 	console.log(`${logSymbols.success} Deleted config '${configToDelete}'`);
 }
 
+const defaultConfigFileNames = {
+	eslint: 'eslint.config.mjs',
+	prettier: 'prettier.config.mjs',
+	editorconfig: '.editorconfig',
+};
+
 // TODO: better name?
-export async function askForConfigOption(configType, configFileName) {
+export async function askForConfigOption(configType) {
 	// Read the user configs
 	const userConfigs = await getUserConfigs();
 
@@ -184,13 +190,14 @@ export async function askForConfigOption(configType, configFileName) {
 		// Copy it into the <home-directory>/.sofic/configs/<configType>/<next-index>/<config-file-name>
 		const homeDirectory = os.homedir();
 		const newDirectoryName = uuidv4();
+		const newFileName = path.basename(configPath);
 		const newConfigPath = path.join(
 			homeDirectory,
 			'.sofic',
 			'configs',
 			configType,
 			newDirectoryName,
-			configFileName,
+			newFileName,
 		);
 		// Create new config directory
 		await fs.mkdir(
@@ -212,7 +219,7 @@ export async function askForConfigOption(configType, configFileName) {
 
 		// Update user configs
 		userConfigs.configs[configType][configName] = {
-			relative_path: newDirectoryName,
+			relative_path: `${newDirectoryName}/${newFileName}`,
 		};
 
 		// Save updated user configs
@@ -234,13 +241,16 @@ export async function askForConfigOption(configType, configFileName) {
 		const __filename = fileURLToPath(import.meta.url);
 		const __dirname = path.dirname(__filename);
 		const snippetsDirectory = path.join(__dirname, 'snippets');
-		configFilePath = path.join(snippetsDirectory, configFileName);
+		configFilePath = path.join(
+			snippetsDirectory,
+			defaultConfigFileNames[configType],
+		);
 	} else if (configAnswer === 'rename') {
 		await askToRenameConfig(userConfigs, configType);
-		return;
+		return {configFilePath: undefined, configFileName: undefined};
 	} else if (configAnswer === 'delete') {
 		await askToDeleteConfig(userConfigs, configType);
-		return;
+		return {configFilePath: undefined, configFileName: undefined};
 	} else {
 		// Use user config
 		const homeDirectory = os.homedir();
@@ -251,11 +261,9 @@ export async function askForConfigOption(configType, configFileName) {
 			'configs',
 			configType,
 			userConfigs.configs[configType][configName].relative_path,
-			configFileName,
 		);
 	}
 
-	// TODO: fix this:
-	// eslint-disable-next-line consistent-return
-	return configFilePath;
+	const configFileName = path.basename(configFilePath);
+	return {configFilePath, configFileName};
 }
