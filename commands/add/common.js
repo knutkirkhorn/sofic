@@ -20,8 +20,7 @@ const userConfigSchema = z.object({
 	),
 });
 
-// TODO: remove from export
-export async function getUserConfigs() {
+async function getUserConfigs() {
 	const homeDirectory = os.homedir();
 	const configFile = path.join(
 		homeDirectory,
