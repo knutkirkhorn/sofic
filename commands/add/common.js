@@ -3,6 +3,33 @@ import os from 'node:os';
 import path from 'node:path';
 import {input, select} from '@inquirer/prompts';
 import logSymbols from 'log-symbols';
+import {z} from 'zod/v4';
+
+const userConfigSchema = z.object({
+	version: z.string(),
+	configs: z.record(
+		z.string(),
+		z.record(
+			z.string(),
+			z.object({
+				relative_path: z.string(),
+			}),
+		),
+	),
+});
+
+export async function getUserConfigs() {
+	const homeDirectory = os.homedir();
+	const configFile = path.join(
+		homeDirectory,
+		'.sofic',
+		'configs',
+		'configs.json',
+	);
+	const userConfigs = JSON.parse(await fs.readFile(configFile, 'utf8'));
+	const parsedUserConfigs = userConfigSchema.parse(userConfigs);
+	return parsedUserConfigs;
+}
 
 export async function askToRenameConfig(userConfigs, configType) {
 	// Select which config to rename

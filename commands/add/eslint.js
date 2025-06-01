@@ -8,9 +8,12 @@ import logSymbols from 'log-symbols';
 import {detect, resolveCommand} from 'package-manager-detector';
 import {parseImports} from 'parse-imports';
 import task from 'tasuku';
-import {z} from 'zod/v4';
 import {fileExists} from '../../util.js';
-import {askToDeleteConfig, askToRenameConfig} from './common.js';
+import {
+	askToDeleteConfig,
+	askToRenameConfig,
+	getUserConfigs,
+} from './common.js';
 
 async function installEslintPackages(packages) {
 	// Get what package manager is used for given project
@@ -29,32 +32,6 @@ async function installEslintPackages(packages) {
 
 	// Run the install packages command
 	await execa(command, args);
-}
-
-const userConfigSchema = z.object({
-	version: z.string(),
-	configs: z.record(
-		z.string(),
-		z.record(
-			z.string(),
-			z.object({
-				relative_path: z.string(),
-			}),
-		),
-	),
-});
-
-async function getUserConfigs() {
-	const homeDirectory = os.homedir();
-	const configFile = path.join(
-		homeDirectory,
-		'.sofic',
-		'configs',
-		'configs.json',
-	);
-	const userConfigs = JSON.parse(await fs.readFile(configFile, 'utf8'));
-	const parsedUserConfigs = userConfigSchema.parse(userConfigs);
-	return parsedUserConfigs;
 }
 
 async function readImportsFromConfig(configFile) {
