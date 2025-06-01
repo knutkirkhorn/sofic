@@ -57,7 +57,6 @@ async function getUserConfigs() {
 }
 
 async function readImportsFromConfig(configFilePath) {
-	console.log('configFilePath', configFilePath);
 	// TODO: needs test for this, test with the default configs
 	// TODO: do this for the prettier configs also
 
