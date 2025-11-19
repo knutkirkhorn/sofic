@@ -38,7 +38,7 @@
 	},
 	"homepage": "https://github.com/knutkirkhorn/sofic#readme",
 	"dependencies": {
-		"@inquirer/prompts": "^7.5.3",
+		"@inquirer/prompts": "^8.0.1",
 		"chalk": "^5.6.2",
 		"execa": "^9.6.0",
 		"git-remote-origin-url": "^4.0.0",
@@ -47,7 +47,7 @@
 		"package-manager-detector": "^1.5.0",
 		"parse-imports": "^2.2.1",
 		"tasuku": "^2.0.2",
-		"uuid": "^11.1.0",
+		"uuid": "^13.0.0",
 		"zod": "^4.1.12"
 	},
 	"devDependencies": {
@@ -61,7 +61,7 @@
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-import": "^2.32.0",
-		"eslint-plugin-unicorn": "^59.0.1",
+		"eslint-plugin-unicorn": "^62.0.0",
 		"globals": "^16.5.0",
 		"prettier": "^3.6.2",
 		"typescript": "^5.9.3"
