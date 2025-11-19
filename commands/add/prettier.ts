@@ -58,7 +58,7 @@ export async function readImportsFromConfig(
 export async function addPrettier(): Promise<void> {
 	const {configFilePath, configFileName} = await askForConfigOption('prettier');
 
-	if (!configFilePath) return;
+	if (!configFilePath || !configFileName) return;
 
 	await Promise.all([
 		task('Installing Prettier packages', async ({setTitle}) => {

@@ -38,12 +38,14 @@ export async function readImportsFromConfig(
 		.filter(
 			import_ =>
 				import_.moduleSpecifier.type === 'package' &&
+				import_.moduleSpecifier.value &&
 				!import_.moduleSpecifier.value.startsWith('node:'),
 		)
 		.map(import_ => {
 			// eslint/config -> eslint
 			// @eslint/js -> @eslint/js
 			if (
+				import_.moduleSpecifier.value &&
 				!import_.moduleSpecifier.value.startsWith('@') &&
 				import_.moduleSpecifier.value.includes('/')
 			) {
@@ -54,13 +56,13 @@ export async function readImportsFromConfig(
 		});
 
 	// Convert to Set and back to array to remove duplicates
-	return [...new Set(packageImports)];
+	return [...new Set(packageImports)] as string[];
 }
 
 export async function addEslint(): Promise<void> {
 	const {configFilePath, configFileName} = await askForConfigOption('eslint');
 
-	if (!configFilePath) return;
+	if (!configFilePath || !configFileName) return;
 
 	// Read config
 	const eslintConfigFile = await fs.readFile(configFilePath, 'utf8');

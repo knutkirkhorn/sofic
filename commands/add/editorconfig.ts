@@ -7,7 +7,7 @@ export async function addEditorConfig(): Promise<void> {
 		await askForConfigOption('editorconfig');
 
 	// If the user renames or deletes a config, it will return early
-	if (!configFilePath) return;
+	if (!configFilePath || !configFileName) return;
 
 	await task('Adding EditorConfig', async ({setTitle, setOutput}) => {
 		// Read config
