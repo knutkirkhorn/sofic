@@ -19,6 +19,9 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
+	{
+		ignores: ['dist/**'],
+	},
 	js.configs.recommended,
 	eslintPluginUnicorn.configs.recommended,
 	eslintConfigPrettier,
