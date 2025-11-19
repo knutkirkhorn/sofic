@@ -12,13 +12,19 @@ async function installEslintPackages(packages: string[]): Promise<void> {
 	});
 
 	// Get the command to install packages
-	const {command, args} = resolveCommand(
+	const resolvedCommand = resolveCommand(
 		// Use 'npm' as default package manager if no package manager is detected
 		packageManager?.agent || 'npm',
 		'add',
 		// Use `-D` to add packages as dev dependencies
 		['-D', ...packages],
 	);
+
+	if (!resolvedCommand) {
+		throw new Error('Failed to resolve command to install ESLint packages');
+	}
+
+	const {command, args} = resolvedCommand;
 
 	// Run the install packages command
 	await execa(command, args);
