@@ -13,11 +13,9 @@ jobs:
           - 20
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: npm run build
-      - run: npm run lint
-      - run: npm run format:check
-      - run: npm test
+      - uses: oven-sh/setup-bun@v2
+      - run: bun ci
+      - run: bun run build
+      - run: bun run lint
+      - run: bun run format:check
+      - run: bun run test
