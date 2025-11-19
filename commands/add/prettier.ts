@@ -4,7 +4,7 @@ import {detect, resolveCommand} from 'package-manager-detector';
 import task from 'tasuku';
 import {askForConfigOption} from './common.js';
 
-async function installPrettierPackages(packages) {
+async function installPrettierPackages(packages: string[]): Promise<void> {
 	// Get what package manager is used for given project
 	const packageManager = await detect({
 		cwd: process.cwd(),
@@ -23,8 +23,18 @@ async function installPrettierPackages(packages) {
 	await execa(command, args);
 }
 
-export async function readImportsFromConfig(configFilePath) {
-	const parsedPrettierConfig = await import(`file://${configFilePath}`);
+interface PrettierConfig {
+	default: {
+		plugins: string[];
+	};
+}
+
+export async function readImportsFromConfig(
+	configFilePath: string,
+): Promise<string[]> {
+	const parsedPrettierConfig = (await import(
+		`file://${configFilePath}`
+	)) as PrettierConfig;
 	const packageImports = parsedPrettierConfig.default.plugins.map(plugin => {
 		// some/thing -> some
 		// @ianvs/prettier-plugin-sort-imports -> @ianvs/prettier-plugin-sort-imports
@@ -39,7 +49,7 @@ export async function readImportsFromConfig(configFilePath) {
 	return [...new Set(packageImports)];
 }
 
-export async function addPrettier() {
+export async function addPrettier(): Promise<void> {
 	const {configFilePath, configFileName} = await askForConfigOption('prettier');
 
 	if (!configFilePath) return;

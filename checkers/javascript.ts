@@ -2,18 +2,23 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileExists} from '../util.js';
 
-export async function hasPackageJson(directoryPath) {
+export async function hasPackageJson(directoryPath: string): Promise<boolean> {
 	return fileExists(path.join(directoryPath, 'package.json'));
+}
+
+interface PackageJson {
+	devDependencies?: Record<string, string>;
+	private?: boolean;
 }
 
 // eslint-disable-next-line consistent-return
 async function checkEslintPlugin(
-	packageJson,
-	hasDevelopmentDependencies,
-	pluginName,
-) {
+	packageJson: PackageJson,
+	hasDevelopmentDependencies: boolean,
+	pluginName: string,
+): Promise<string | undefined> {
 	const hasInstalledEslintPlugin = hasDevelopmentDependencies
-		? Object.keys(packageJson.devDependencies).includes(
+		? Object.keys(packageJson.devDependencies ?? {}).includes(
 				`eslint-plugin-${pluginName}`,
 			)
 		: false;
@@ -23,16 +28,18 @@ async function checkEslintPlugin(
 	}
 }
 
-export async function checkEslintConfig(directoryPath) {
-	const packageJson = JSON.parse(
+export async function checkEslintConfig(
+	directoryPath: string,
+): Promise<string[]> {
+	const packageJson: PackageJson = JSON.parse(
 		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
 	);
 
-	const eslintErrors = [];
+	const eslintErrors: string[] = [];
 	const hasDevelopmentDependencies = packageJson.devDependencies !== undefined;
 
 	const isUsingEslint = hasDevelopmentDependencies
-		? Object.keys(packageJson.devDependencies).includes('eslint')
+		? Object.keys(packageJson.devDependencies ?? {}).includes('eslint')
 		: false;
 
 	if (!isUsingEslint) {
@@ -40,7 +47,7 @@ export async function checkEslintConfig(directoryPath) {
 	}
 
 	const isUsingAva = hasDevelopmentDependencies
-		? Object.keys(packageJson.devDependencies).includes('ava')
+		? Object.keys(packageJson.devDependencies ?? {}).includes('ava')
 		: false;
 
 	if (isUsingAva) {
@@ -62,15 +69,17 @@ export async function checkEslintConfig(directoryPath) {
 	return eslintErrors;
 }
 
-export async function checkNpmPackage(directoryPath) {
-	const packageJson = JSON.parse(
+export async function checkNpmPackage(
+	directoryPath: string,
+): Promise<string[]> {
+	const packageJson: PackageJson = JSON.parse(
 		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
 	);
 	const isNotPrivate = packageJson.private !== true;
 
 	if (!isNotPrivate) return [];
 
-	const npmPackageErrors = [];
+	const npmPackageErrors: string[] = [];
 
 	const hasLockFile = await fileExists(
 		path.join(directoryPath, 'package-lock.json'),
@@ -114,7 +123,10 @@ export async function checkNpmPackage(directoryPath) {
 	return npmPackageErrors;
 }
 
-function checkDevelopmentDependencies(packageJson, dependencies) {
+function checkDevelopmentDependencies(
+	packageJson: PackageJson,
+	dependencies: string[],
+): string[] {
 	if (packageJson.devDependencies === undefined) {
 		return dependencies.map(
 			dependency =>
@@ -122,7 +134,7 @@ function checkDevelopmentDependencies(packageJson, dependencies) {
 		);
 	}
 
-	const errors = [];
+	const errors: string[] = [];
 
 	for (const dependency of dependencies) {
 		if (!Object.keys(packageJson.devDependencies).includes(dependency)) {
@@ -135,14 +147,16 @@ function checkDevelopmentDependencies(packageJson, dependencies) {
 	return errors;
 }
 
-export async function checkPrettierConfig(directoryPath) {
-	const packageJson = JSON.parse(
+export async function checkPrettierConfig(
+	directoryPath: string,
+): Promise<string[]> {
+	const packageJson: PackageJson = JSON.parse(
 		await fs.readFile(path.join(directoryPath, 'package.json'), 'utf8'),
 	);
 
-	const prettierErrors = [];
+	const prettierErrors: string[] = [];
 	const hasInstalledTailwind = Object.keys(
-		packageJson.devDependencies,
+		packageJson.devDependencies ?? {},
 	).includes('tailwindcss');
 	const developmentDependenciesToCheck = [
 		'prettier',
@@ -161,8 +175,10 @@ export async function checkPrettierConfig(directoryPath) {
 	return prettierErrors;
 }
 
-export async function checkJavascriptErrors(directoryPath) {
-	const errors = [];
+export async function checkJavascriptErrors(
+	directoryPath: string,
+): Promise<string[]> {
+	const errors: string[] = [];
 
 	const npmPackageErrors = await checkNpmPackage(directoryPath);
 	errors.push(...npmPackageErrors);

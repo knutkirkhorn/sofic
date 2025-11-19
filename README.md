@@ -7,7 +7,13 @@ Sofic: **So**urce **fi**le **c**hecker.
 ## Installation
 
 ```sh
-npm install --global sofic
+npm install --global sofic¨
+```
+
+## Development
+
+```sh
+bun cli.ts check
 ```
 
 ## Usage

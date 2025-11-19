@@ -21,7 +21,9 @@ const userConfigSchema = z.object({
 	),
 });
 
-async function getUserConfigs() {
+type UserConfigs = z.infer<typeof userConfigSchema>;
+
+async function getUserConfigs(): Promise<UserConfigs> {
 	const homeDirectory = os.homedir();
 	const configFile = path.join(
 		homeDirectory,
@@ -34,7 +36,10 @@ async function getUserConfigs() {
 	return parsedUserConfigs;
 }
 
-export async function askToRenameConfig(userConfigs, configType) {
+export async function askToRenameConfig(
+	userConfigs: UserConfigs,
+	configType: string,
+): Promise<void> {
 	// Select which config to rename
 	const configToRename = await select({
 		message: 'Select a config to rename',
@@ -78,7 +83,10 @@ export async function askToRenameConfig(userConfigs, configType) {
 	);
 }
 
-export async function askToDeleteConfig(userConfigs, configType) {
+export async function askToDeleteConfig(
+	userConfigs: UserConfigs,
+	configType: string,
+): Promise<void> {
 	// Select which config to delete
 	const configToDelete = await select({
 		message: 'Select a config to delete',
@@ -106,14 +114,17 @@ export async function askToDeleteConfig(userConfigs, configType) {
 	console.log(`${logSymbols.success} Deleted config '${configToDelete}'`);
 }
 
-const defaultConfigFileNames = {
+const defaultConfigFileNames: Record<string, string> = {
 	eslint: 'eslint.config.mjs',
 	prettier: 'prettier.config.mjs',
 	editorconfig: '.editorconfig',
 };
 
 // TODO: better name?
-export async function askForConfigOption(configType) {
+export async function askForConfigOption(configType: string): Promise<{
+	configFilePath: string | undefined;
+	configFileName: string | undefined;
+}> {
 	// Read the user configs
 	const userConfigs = await getUserConfigs();
 

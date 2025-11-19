@@ -5,7 +5,7 @@ import {parseImports} from 'parse-imports';
 import task from 'tasuku';
 import {askForConfigOption} from './common.js';
 
-async function installEslintPackages(packages) {
+async function installEslintPackages(packages: string[]): Promise<void> {
 	// Get what package manager is used for given project
 	const packageManager = await detect({
 		cwd: process.cwd(),
@@ -24,7 +24,9 @@ async function installEslintPackages(packages) {
 	await execa(command, args);
 }
 
-export async function readImportsFromConfig(configFile) {
+export async function readImportsFromConfig(
+	configFile: string,
+): Promise<string[]> {
 	const imports = [...(await parseImports(configFile))];
 	const packageImports = imports
 		.filter(
@@ -49,7 +51,7 @@ export async function readImportsFromConfig(configFile) {
 	return [...new Set(packageImports)];
 }
 
-export async function addEslint() {
+export async function addEslint(): Promise<void> {
 	const {configFilePath, configFileName} = await askForConfigOption('eslint');
 
 	if (!configFilePath) return;
