@@ -9,7 +9,7 @@
 		"format:check": "prettier . --check"
 	},
 	"bin": {
-		"sofic": "dist/cli.js"
+		"sofic": "./dist/cli.js"
 	},
 	"files": [
 		"dist"
