@@ -4,13 +4,7 @@ on:
   - pull_request
 jobs:
   test:
-    name: Node.js ${{ matrix.node-version }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version:
-          - 24
-          - 20
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
