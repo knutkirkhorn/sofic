@@ -9,12 +9,10 @@
 		"format:check": "prettier . --check"
 	},
 	"bin": {
-		"sofic": "./dist/cli.js"
+		"sofic": "dist/cli.js"
 	},
 	"files": [
-		"dist",
-		"checkers",
-		"commands"
+		"dist"
 	],
 	"repository": {
 		"type": "git",
@@ -30,7 +28,7 @@
 	"author": "Knut Kirkhorn",
 	"type": "module",
 	"engines": {
-		"node": ">=18.20"
+		"node": ">=20"
 	},
 	"license": "MIT",
 	"bugs": {
@@ -53,7 +51,7 @@
 	"devDependencies": {
 		"@eslint/js": "^9.39.1",
 		"@ianvs/prettier-plugin-sort-imports": "^4.7.0",
-		"@tsconfig/node20": "^20.1.8",
+		"@sindresorhus/tsconfig": "^8.1.0",
 		"@types/bun": "^1.3.2",
 		"@types/node": "^24.10.1",
 		"@typescript-eslint/eslint-plugin": "^8.47.0",

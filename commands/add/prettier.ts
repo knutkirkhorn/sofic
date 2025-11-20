@@ -41,15 +41,21 @@ export async function readImportsFromConfig(
 	const parsedPrettierConfig = (await import(
 		`file://${configFilePath}`
 	)) as PrettierConfig;
-	const packageImports = parsedPrettierConfig.default.plugins.map(plugin => {
-		// some/thing -> some
-		// @ianvs/prettier-plugin-sort-imports -> @ianvs/prettier-plugin-sort-imports
-		if (!plugin.startsWith('@') && plugin.includes('/')) {
-			return plugin.split('/')[0];
-		}
+	const packageImports = parsedPrettierConfig.default.plugins
+		.map(plugin => {
+			// some/thing -> some
+			// @ianvs/prettier-plugin-sort-imports -> @ianvs/prettier-plugin-sort-imports
+			if (!plugin.startsWith('@') && plugin.includes('/')) {
+				return plugin.split('/')[0];
+			}
 
-		return plugin;
-	});
+			return plugin;
+		})
+		// Filter out any undefined values that may exist
+		.filter(
+			(packageImport): packageImport is string =>
+				typeof packageImport === 'string',
+		);
 
 	// Convert to Set and back to array to remove duplicates
 	return [...new Set(packageImports)];

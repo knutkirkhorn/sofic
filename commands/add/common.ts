@@ -43,7 +43,7 @@ export async function askToRenameConfig(
 	// Select which config to rename
 	const configToRename = await select({
 		message: 'Select a config to rename',
-		choices: Object.keys(userConfigs.configs[configType]).map(key => ({
+		choices: Object.keys(userConfigs.configs[configType] ?? {}).map(key => ({
 			name: key,
 			value: key,
 		})),
@@ -54,7 +54,7 @@ export async function askToRenameConfig(
 		message: 'New config name',
 		validate: value => {
 			if (!value) return 'Config name is required';
-			if (Object.keys(userConfigs.configs[configType]).includes(value)) {
+			if (Object.keys(userConfigs.configs[configType] ?? {}).includes(value)) {
 				return 'Config with this name already exists';
 			}
 			return true;
@@ -62,9 +62,9 @@ export async function askToRenameConfig(
 	});
 
 	// Update user configs
-	userConfigs.configs[configType][newConfigName] =
-		userConfigs.configs[configType][configToRename];
-	delete userConfigs.configs[configType][configToRename];
+	userConfigs.configs[configType]![newConfigName] =
+		userConfigs.configs[configType]![configToRename]!;
+	delete userConfigs.configs[configType]![configToRename];
 
 	// Save updated user configs
 	const homeDirectory = os.homedir();
@@ -90,14 +90,14 @@ export async function askToDeleteConfig(
 	// Select which config to delete
 	const configToDelete = await select({
 		message: 'Select a config to delete',
-		choices: Object.keys(userConfigs.configs[configType]).map(key => ({
+		choices: Object.keys(userConfigs.configs[configType] ?? {}).map(key => ({
 			name: key,
 			value: key,
 		})),
 	});
 
 	// Delete config
-	delete userConfigs.configs[configType][configToDelete];
+	delete userConfigs.configs[configType]![configToDelete];
 
 	// Save updated user configs
 	const homeDirectory = os.homedir();
@@ -138,7 +138,7 @@ export async function askForConfigOption(configType: string): Promise<{
 				description: 'Use the default config',
 			},
 			// Append all user defined configs
-			...Object.keys(userConfigs.configs[configType]).map(key => ({
+			...Object.keys(userConfigs.configs[configType] ?? {}).map(key => ({
 				name: key,
 				value: `user-${key}`,
 				description: `Use the ${key} config`,
@@ -153,13 +153,15 @@ export async function askForConfigOption(configType: string): Promise<{
 				name: 'Rename config',
 				value: 'rename',
 				description: 'Rename a config',
-				disabled: Object.keys(userConfigs.configs[configType]).length === 0,
+				disabled:
+					Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
 			},
 			{
 				name: 'Delete config',
 				value: 'delete',
 				description: 'Delete a config',
-				disabled: Object.keys(userConfigs.configs[configType]).length === 0,
+				disabled:
+					Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
 			},
 			new Separator(),
 		],
@@ -175,7 +177,9 @@ export async function askForConfigOption(configType: string): Promise<{
 				validate: value => {
 					if (!value) return 'Config name is required';
 
-					if (Object.keys(userConfigs.configs[configType]).includes(value)) {
+					if (
+						Object.keys(userConfigs.configs[configType] ?? {}).includes(value)
+					) {
 						return 'Config with this name already exists';
 					}
 
@@ -228,7 +232,7 @@ export async function askForConfigOption(configType: string): Promise<{
 			await fs.writeFile(newConfigPath, userSelectedConfigFile);
 
 			// Update user configs
-			userConfigs.configs[configType][configName] = {
+			userConfigs.configs[configType]![configName] = {
 				relative_path: `${newDirectoryName}/${newFileName}`,
 			};
 
@@ -256,7 +260,7 @@ export async function askForConfigOption(configType: string): Promise<{
 			const snippetsDirectory = path.join(__dirname, 'snippets');
 			configFilePath = path.join(
 				snippetsDirectory,
-				defaultConfigFileNames[configType],
+				defaultConfigFileNames[configType]!,
 			);
 
 			break;
@@ -278,7 +282,7 @@ export async function askForConfigOption(configType: string): Promise<{
 				'.sofic',
 				'configs',
 				configType,
-				userConfigs.configs[configType][configName].relative_path,
+				userConfigs.configs[configType]![configName]!.relative_path,
 			);
 
 			break;

@@ -11,7 +11,6 @@ interface PackageJson {
 	private?: boolean;
 }
 
-// eslint-disable-next-line consistent-return
 async function checkEslintPlugin(
 	packageJson: PackageJson,
 	hasDevelopmentDependencies: boolean,
@@ -26,6 +25,8 @@ async function checkEslintPlugin(
 	if (!hasInstalledEslintPlugin) {
 		return `package.json: missing \`eslint-plugin-${pluginName}\` in \`devDependencies\``;
 	}
+
+	return undefined;
 }
 
 export async function checkEslintConfig(
@@ -97,7 +98,7 @@ export async function checkNpmPackage(
 
 	const isTypeScriptPackage =
 		packageJson.devDependencies &&
-		packageJson.devDependencies.typescript !== undefined;
+		packageJson.devDependencies['typescript'] !== undefined;
 	const hasIndexFile = await fileExists(path.join(directoryPath, 'index.js'));
 
 	if (!isTypeScriptPackage && hasIndexFile) {
