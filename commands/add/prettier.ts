@@ -4,14 +4,14 @@ import {detect, resolveCommand} from 'package-manager-detector';
 import task from 'tasuku';
 import {askForConfigOption} from './common.js';
 
-async function installPrettierPackages(packages) {
+async function installPrettierPackages(packages: string[]): Promise<void> {
 	// Get what package manager is used for given project
 	const packageManager = await detect({
 		cwd: process.cwd(),
 	});
 
 	// Get the command to install packages
-	const {command, args} = resolveCommand(
+	const resolvedCommand = resolveCommand(
 		// Use 'npm' as default package manager if no package manager is detected
 		packageManager?.agent || 'npm',
 		'add',
@@ -19,30 +19,52 @@ async function installPrettierPackages(packages) {
 		['-D', ...packages],
 	);
 
+	if (!resolvedCommand) {
+		throw new Error('Failed to resolve command to install Prettier packages');
+	}
+
+	const {command, args} = resolvedCommand;
+
 	// Run the install packages command
 	await execa(command, args);
 }
 
-export async function readImportsFromConfig(configFilePath) {
-	const parsedPrettierConfig = await import(`file://${configFilePath}`);
-	const packageImports = parsedPrettierConfig.default.plugins.map(plugin => {
-		// some/thing -> some
-		// @ianvs/prettier-plugin-sort-imports -> @ianvs/prettier-plugin-sort-imports
-		if (!plugin.startsWith('@') && plugin.includes('/')) {
-			return plugin.split('/')[0];
-		}
+interface PrettierConfig {
+	default: {
+		plugins: string[];
+	};
+}
 
-		return plugin;
-	});
+export async function readImportsFromConfig(
+	configFilePath: string,
+): Promise<string[]> {
+	const parsedPrettierConfig = (await import(
+		`file://${configFilePath}`
+	)) as PrettierConfig;
+	const packageImports = parsedPrettierConfig.default.plugins
+		.map(plugin => {
+			// some/thing -> some
+			// @ianvs/prettier-plugin-sort-imports -> @ianvs/prettier-plugin-sort-imports
+			if (!plugin.startsWith('@') && plugin.includes('/')) {
+				return plugin.split('/')[0];
+			}
+
+			return plugin;
+		})
+		// Filter out any undefined values that may exist
+		.filter(
+			(packageImport): packageImport is string =>
+				typeof packageImport === 'string',
+		);
 
 	// Convert to Set and back to array to remove duplicates
 	return [...new Set(packageImports)];
 }
 
-export async function addPrettier() {
+export async function addPrettier(): Promise<void> {
 	const {configFilePath, configFileName} = await askForConfigOption('prettier');
 
-	if (!configFilePath) return;
+	if (!configFilePath || !configFileName) return;
 
 	await Promise.all([
 		task('Installing Prettier packages', async ({setTitle}) => {

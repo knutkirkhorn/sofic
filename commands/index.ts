@@ -7,7 +7,7 @@ import {addEditorConfig} from './add/editorconfig.js';
 import {addEslint} from './add/eslint.js';
 import {addPrettier} from './add/prettier.js';
 
-async function ensureUserConfigDirectoriesExists() {
+async function ensureUserConfigDirectoriesExists(): Promise<void> {
 	const homeDirectory = os.homedir();
 	const configDirectories = ['eslint', 'prettier', 'editorconfig'];
 
@@ -22,7 +22,7 @@ async function ensureUserConfigDirectoriesExists() {
 	}
 }
 
-async function ensureUserConfigFileExists() {
+async function ensureUserConfigFileExists(): Promise<void> {
 	const homeDirectory = os.homedir();
 	const configFile = path.join(
 		homeDirectory,
@@ -41,7 +41,7 @@ async function ensureUserConfigFileExists() {
 	const __dirname = path.dirname(__filename);
 	const soficPackageJson = JSON.parse(
 		await fs.readFile(path.join(__dirname, '../package.json'), 'utf8'),
-	);
+	) as {version: string};
 
 	const config = {
 		version: soficPackageJson.version,
@@ -55,7 +55,10 @@ async function ensureUserConfigFileExists() {
 	await fs.writeFile(configFile, JSON.stringify(config, undefined, 2));
 }
 
-export async function add(tool, flags) {
+export async function add(
+	tool: string | undefined,
+	flags: {list?: boolean},
+): Promise<void> {
 	if (flags.list || !tool) {
 		console.log('Available tools:');
 		console.log('  - eslint');

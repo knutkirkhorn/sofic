@@ -10,6 +10,12 @@ Sofic: **So**urce **fi**le **c**hecker.
 npm install --global sofic
 ```
 
+## Development
+
+```sh
+bun cli.ts check
+```
+
 ## Usage
 
 ```

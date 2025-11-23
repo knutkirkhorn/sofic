@@ -21,7 +21,9 @@ const userConfigSchema = z.object({
 	),
 });
 
-async function getUserConfigs() {
+type UserConfigs = z.infer<typeof userConfigSchema>;
+
+async function getUserConfigs(): Promise<UserConfigs> {
 	const homeDirectory = os.homedir();
 	const configFile = path.join(
 		homeDirectory,
@@ -34,11 +36,14 @@ async function getUserConfigs() {
 	return parsedUserConfigs;
 }
 
-export async function askToRenameConfig(userConfigs, configType) {
+export async function askToRenameConfig(
+	userConfigs: UserConfigs,
+	configType: string,
+): Promise<void> {
 	// Select which config to rename
 	const configToRename = await select({
 		message: 'Select a config to rename',
-		choices: Object.keys(userConfigs.configs[configType]).map(key => ({
+		choices: Object.keys(userConfigs.configs[configType] ?? {}).map(key => ({
 			name: key,
 			value: key,
 		})),
@@ -49,7 +54,7 @@ export async function askToRenameConfig(userConfigs, configType) {
 		message: 'New config name',
 		validate: value => {
 			if (!value) return 'Config name is required';
-			if (Object.keys(userConfigs.configs[configType]).includes(value)) {
+			if (Object.keys(userConfigs.configs[configType] ?? {}).includes(value)) {
 				return 'Config with this name already exists';
 			}
 			return true;
@@ -57,9 +62,9 @@ export async function askToRenameConfig(userConfigs, configType) {
 	});
 
 	// Update user configs
-	userConfigs.configs[configType][newConfigName] =
-		userConfigs.configs[configType][configToRename];
-	delete userConfigs.configs[configType][configToRename];
+	userConfigs.configs[configType]![newConfigName] =
+		userConfigs.configs[configType]![configToRename]!;
+	delete userConfigs.configs[configType]![configToRename];
 
 	// Save updated user configs
 	const homeDirectory = os.homedir();
@@ -78,18 +83,21 @@ export async function askToRenameConfig(userConfigs, configType) {
 	);
 }
 
-export async function askToDeleteConfig(userConfigs, configType) {
+export async function askToDeleteConfig(
+	userConfigs: UserConfigs,
+	configType: string,
+): Promise<void> {
 	// Select which config to delete
 	const configToDelete = await select({
 		message: 'Select a config to delete',
-		choices: Object.keys(userConfigs.configs[configType]).map(key => ({
+		choices: Object.keys(userConfigs.configs[configType] ?? {}).map(key => ({
 			name: key,
 			value: key,
 		})),
 	});
 
 	// Delete config
-	delete userConfigs.configs[configType][configToDelete];
+	delete userConfigs.configs[configType]![configToDelete];
 
 	// Save updated user configs
 	const homeDirectory = os.homedir();
@@ -106,14 +114,17 @@ export async function askToDeleteConfig(userConfigs, configType) {
 	console.log(`${logSymbols.success} Deleted config '${configToDelete}'`);
 }
 
-const defaultConfigFileNames = {
+const defaultConfigFileNames: Record<string, string> = {
 	eslint: 'eslint.config.mjs',
 	prettier: 'prettier.config.mjs',
 	editorconfig: '.editorconfig',
 };
 
 // TODO: better name?
-export async function askForConfigOption(configType) {
+export async function askForConfigOption(configType: string): Promise<{
+	configFilePath: string | undefined;
+	configFileName: string | undefined;
+}> {
 	// Read the user configs
 	const userConfigs = await getUserConfigs();
 
@@ -127,7 +138,7 @@ export async function askForConfigOption(configType) {
 				description: 'Use the default config',
 			},
 			// Append all user defined configs
-			...Object.keys(userConfigs.configs[configType]).map(key => ({
+			...Object.keys(userConfigs.configs[configType] ?? {}).map(key => ({
 				name: key,
 				value: `user-${key}`,
 				description: `Use the ${key} config`,
@@ -142,13 +153,15 @@ export async function askForConfigOption(configType) {
 				name: 'Rename config',
 				value: 'rename',
 				description: 'Rename a config',
-				disabled: Object.keys(userConfigs.configs[configType]).length === 0,
+				disabled:
+					Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
 			},
 			{
 				name: 'Delete config',
 				value: 'delete',
 				description: 'Delete a config',
-				disabled: Object.keys(userConfigs.configs[configType]).length === 0,
+				disabled:
+					Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
 			},
 			new Separator(),
 		],
@@ -164,7 +177,9 @@ export async function askForConfigOption(configType) {
 				validate: value => {
 					if (!value) return 'Config name is required';
 
-					if (Object.keys(userConfigs.configs[configType]).includes(value)) {
+					if (
+						Object.keys(userConfigs.configs[configType] ?? {}).includes(value)
+					) {
 						return 'Config with this name already exists';
 					}
 
@@ -217,7 +232,7 @@ export async function askForConfigOption(configType) {
 			await fs.writeFile(newConfigPath, userSelectedConfigFile);
 
 			// Update user configs
-			userConfigs.configs[configType][configName] = {
+			userConfigs.configs[configType]![configName] = {
 				relative_path: `${newDirectoryName}/${newFileName}`,
 			};
 
@@ -245,7 +260,7 @@ export async function askForConfigOption(configType) {
 			const snippetsDirectory = path.join(__dirname, 'snippets');
 			configFilePath = path.join(
 				snippetsDirectory,
-				defaultConfigFileNames[configType],
+				defaultConfigFileNames[configType]!,
 			);
 
 			break;
@@ -267,7 +282,7 @@ export async function askForConfigOption(configType) {
 				'.sofic',
 				'configs',
 				configType,
-				userConfigs.configs[configType][configName].relative_path,
+				userConfigs.configs[configType]![configName]!.relative_path,
 			);
 
 			break;

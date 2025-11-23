@@ -5,7 +5,7 @@ import {add} from './commands/index.js';
 import {checkRepoFiles} from './index.js';
 
 const cli = meow(
-	`
+	String.raw`
 	Usage
 	  $ sofic
 	  $ sofic add <tool>
@@ -15,8 +15,8 @@ const cli = meow(
 	  $ sofic
 	  $ sofic add eslint
 	  $ sofic add --list
-	  $ sofic check C:\\Users\\knut\\dev\\sofic
-	  $ sofic check C:\\Users\\knut\\dev
+	  $ sofic check C:\Users\knut\dev\sofic
+	  $ sofic check C:\Users\knut\dev
 `,
 	{
 		importMeta: import.meta,

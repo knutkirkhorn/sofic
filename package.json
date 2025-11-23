@@ -3,19 +3,16 @@
 	"version": "3.3.0",
 	"description": "Check the source files in directories",
 	"scripts": {
-		"test": "ava",
+		"build": "tsc",
+		"test": "bun test",
 		"lint": "eslint .",
 		"format:check": "prettier . --check"
 	},
 	"bin": {
-		"sofic": "cli.js"
+		"sofic": "./dist/cli.js"
 	},
 	"files": [
-		"cli.js",
-		"index.js",
-		"util.js",
-		"checkers",
-		"commands"
+		"dist"
 	],
 	"repository": {
 		"type": "git",
@@ -31,7 +28,7 @@
 	"author": "Knut Kirkhorn",
 	"type": "module",
 	"engines": {
-		"node": ">=18.20"
+		"node": ">=20"
 	},
 	"license": "MIT",
 	"bugs": {
@@ -39,31 +36,32 @@
 	},
 	"homepage": "https://github.com/knutkirkhorn/sofic#readme",
 	"dependencies": {
-		"@inquirer/prompts": "^7.5.3",
-		"chalk": "^5.4.1",
-		"execa": "^9.5.3",
+		"@inquirer/prompts": "^8.0.1",
+		"chalk": "^5.6.2",
+		"execa": "^9.6.0",
 		"git-remote-origin-url": "^4.0.0",
 		"log-symbols": "^7.0.1",
-		"meow": "^13.2.0",
-		"package-manager-detector": "^1.3.0",
+		"meow": "^14.0.0",
+		"package-manager-detector": "^1.5.0",
 		"parse-imports": "^2.2.1",
-		"tasuku": "^2.0.1",
-		"uuid": "^11.1.0",
-		"zod": "^3.25.36"
+		"tasuku": "^2.0.2",
+		"uuid": "^13.0.0",
+		"zod": "^4.1.12"
 	},
 	"devDependencies": {
-		"@eslint/compat": "^1.2.9",
-		"@eslint/eslintrc": "^3.3.1",
-		"@eslint/js": "^9.27.0",
-		"@ianvs/prettier-plugin-sort-imports": "^4.4.1",
-		"ava": "^6.3.0",
-		"eslint": "^9.27.0",
-		"eslint-config-prettier": "^10.1.5",
-		"eslint-plugin-ava": "^15.0.1",
-		"eslint-plugin-import": "^2.31.0",
-		"eslint-plugin-unicorn": "^59.0.1",
-		"globals": "^16.1.0",
-		"mock-fs": "^5.5.0",
-		"prettier": "^3.5.3"
+		"@eslint/js": "^9.39.1",
+		"@ianvs/prettier-plugin-sort-imports": "^4.7.0",
+		"@sindresorhus/tsconfig": "^8.1.0",
+		"@types/bun": "^1.3.2",
+		"@types/node": "^24.10.1",
+		"@typescript-eslint/eslint-plugin": "^8.47.0",
+		"@typescript-eslint/parser": "^8.47.0",
+		"eslint": "^9.39.1",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-import": "^2.32.0",
+		"eslint-plugin-unicorn": "^62.0.0",
+		"globals": "^16.5.0",
+		"prettier": "^3.6.2",
+		"typescript": "^5.9.3"
 	}
 }

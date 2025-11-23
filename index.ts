@@ -6,7 +6,12 @@ import logSymbols from 'log-symbols';
 import {checkJavascriptErrors, hasPackageJson} from './checkers/javascript.js';
 import {fileExists} from './util.js';
 
-async function isDirectory(directoryPath) {
+interface DirectoryInfo {
+	isDirectory: boolean;
+	directoryPath: string;
+}
+
+async function isDirectory(directoryPath: string): Promise<DirectoryInfo> {
 	try {
 		const stats = await fs.stat(directoryPath);
 		return {
@@ -21,7 +26,7 @@ async function isDirectory(directoryPath) {
 	}
 }
 
-async function getSubDirectories(directoryPath) {
+async function getSubDirectories(directoryPath: string): Promise<string[]> {
 	const subPaths = await fs.readdir(directoryPath);
 	const subDirectories = await Promise.all(
 		subPaths.map(subPath => isDirectory(path.join(directoryPath, subPath))),
@@ -33,12 +38,12 @@ async function getSubDirectories(directoryPath) {
 
 const defaultFilesToCheck = ['.editorconfig'];
 
-async function isGitRepo(directoryPath) {
+async function isGitRepo(directoryPath: string): Promise<boolean> {
 	// eslint-disable-next-line unicorn/no-await-expression-member
 	return (await isDirectory(path.join(directoryPath, '.git'))).isDirectory;
 }
 
-async function checkGithubActions(directoryPath) {
+async function checkGithubActions(directoryPath: string): Promise<string[]> {
 	const githubActionsDirectory = path.join(
 		directoryPath,
 		'.github',
@@ -69,7 +74,7 @@ async function checkGithubActions(directoryPath) {
 	return ['GitHub Actions: missing workflow file in `.github/workflows`'];
 }
 
-async function checkGitLabCi(directoryPath) {
+async function checkGitLabCi(directoryPath: string): Promise<string[]> {
 	const files = await fs.readdir(directoryPath);
 
 	// Check all the files in the directory and see if any ends with `.gitlab-ci.yml`
@@ -85,9 +90,9 @@ async function checkGitLabCi(directoryPath) {
 	return ['GitLab CI: missing `.gitlab-ci.yml` file'];
 }
 
-async function checkDirectoryFiles(directoryPath) {
+async function checkDirectoryFiles(directoryPath: string): Promise<void> {
 	const filesToCheck = [...defaultFilesToCheck];
-	const regexFilesToCheck = [];
+	const regexFilesToCheck: Array<{regex: RegExp; error: string}> = [];
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
 	if (isJavascriptDirectory) {
 		regexFilesToCheck.push(
@@ -107,7 +112,7 @@ async function checkDirectoryFiles(directoryPath) {
 	const isDirectoryGitRepo = await isGitRepo(directoryPath);
 	if (isDirectoryGitRepo) filesToCheck.push('.gitignore', '.gitattributes');
 
-	const errors = [];
+	const errors: string[] = [];
 
 	for (const fileToCheck of filesToCheck) {
 		const filePath = path.join(directoryPath, fileToCheck);
@@ -157,7 +162,9 @@ async function checkDirectoryFiles(directoryPath) {
 	}
 }
 
-export async function checkRepoFiles(directoryPath = process.cwd()) {
+export async function checkRepoFiles(
+	directoryPath: string = process.cwd(),
+): Promise<void> {
 	const parsedDirectoryPath = path.resolve(directoryPath);
 	const {isDirectory: isPathDirectory} = await isDirectory(parsedDirectoryPath);
 
