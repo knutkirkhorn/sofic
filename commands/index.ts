@@ -5,11 +5,17 @@ import {fileURLToPath} from 'node:url';
 import {fileExists} from '../util.js';
 import {addEditorConfig} from './add/editorconfig.js';
 import {addEslint} from './add/eslint.js';
+import {addGitattributes} from './add/gitattributes.js';
 import {addPrettier} from './add/prettier.js';
 
 async function ensureUserConfigDirectoriesExists(): Promise<void> {
 	const homeDirectory = os.homedir();
-	const configDirectories = ['eslint', 'prettier', 'editorconfig'];
+	const configDirectories = [
+		'eslint',
+		'prettier',
+		'editorconfig',
+		'gitattributes',
+	];
 
 	for (const directory of configDirectories) {
 		const configDirectoryPath = path.join(
@@ -48,6 +54,7 @@ async function ensureUserConfigFileExists(): Promise<void> {
 		configs: {
 			editorconfig: {},
 			eslint: {},
+			gitattributes: {},
 			prettier: {},
 		},
 	};
@@ -64,6 +71,7 @@ export async function add(
 		console.log('  - eslint');
 		console.log('  - prettier');
 		console.log('  - editorconfig');
+		console.log('  - gitattributes');
 		return;
 	}
 
@@ -83,6 +91,10 @@ export async function add(
 		}
 		case 'editorconfig': {
 			await addEditorConfig();
+			break;
+		}
+		case 'gitattributes': {
+			await addGitattributes();
 			break;
 		}
 		default: {

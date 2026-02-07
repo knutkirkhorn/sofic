@@ -118,6 +118,7 @@ const defaultConfigFileNames: Record<string, string> = {
 	eslint: 'eslint.config.mjs',
 	prettier: 'prettier.config.mjs',
 	editorconfig: '.editorconfig',
+	gitattributes: '.gitattributes',
 };
 
 // TODO: better name?
