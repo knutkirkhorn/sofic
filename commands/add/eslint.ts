@@ -59,6 +59,36 @@ export async function readImportsFromConfig(
 	return [...new Set(packageImports)] as string[];
 }
 
+export async function addLintScript(): Promise<boolean> {
+	const packageJsonPath = 'package.json';
+
+	let packageJson: {scripts?: Record<string, string>; [key: string]: unknown};
+	try {
+		const content = await fs.readFile(packageJsonPath, 'utf8');
+		packageJson = JSON.parse(content) as typeof packageJson;
+	} catch {
+		// No package.json found, skip adding lint script
+		return false;
+	}
+
+	// Check if a lint script already exists
+	if (packageJson.scripts?.lint) {
+		return false;
+	}
+
+	// Add the lint script
+	packageJson.scripts = {
+		...packageJson.scripts,
+		lint: 'eslint .',
+	};
+
+	await fs.writeFile(
+		packageJsonPath,
+		JSON.stringify(packageJson, undefined, '\t') + '\n',
+	);
+	return true;
+}
+
 export async function addEslint(): Promise<void> {
 	const {configFilePath, configFileName} = await askForConfigOption('eslint');
 
@@ -78,6 +108,16 @@ export async function addEslint(): Promise<void> {
 			await fs.writeFile(configFileName, eslintConfigFile);
 			setTitle('Added ESLint config');
 			setOutput(configFileName);
+		}),
+		task('Adding lint to scripts', async ({setTitle}) => {
+			const added = await addLintScript();
+			if (added) {
+				setTitle('Added lint to scripts');
+			} else {
+				setTitle(
+					'`lint` already exists in `scripts` or no package.json was found',
+				);
+			}
 		}),
 	]);
 }
