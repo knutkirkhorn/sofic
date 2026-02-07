@@ -69,7 +69,7 @@ export async function addPrettier(): Promise<void> {
 	await Promise.all([
 		task('Installing Prettier packages', async ({setTitle}) => {
 			const packagesToInstall = await readImportsFromConfig(configFilePath);
-			await installPrettierPackages(packagesToInstall);
+			await installPrettierPackages(['prettier', ...packagesToInstall]);
 			setTitle('Installed Prettier packages');
 		}),
 		task('Adding Prettier config', async ({setTitle, setOutput}) => {
