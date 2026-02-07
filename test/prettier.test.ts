@@ -1,7 +1,11 @@
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import {expect, test} from 'bun:test';
 import {checkPrettierConfig} from '../checkers/javascript.js';
-import {readImportsFromConfig} from '../commands/add/prettier.js';
+import {
+	addFormatCheckScript,
+	readImportsFromConfig,
+} from '../commands/add/prettier.js';
 import {withMockedFilesystem} from './helpers.js';
 
 test('has dependencies', async () => {
@@ -107,6 +111,81 @@ test('parse plugins imports from config file', async () => {
 				'@ianvs/prettier-plugin-sort-imports',
 				'some',
 			]);
+		},
+	);
+});
+
+test('adds format:check script when no format:check script exists', async () => {
+	await withMockedFilesystem(
+		{
+			'package.json': JSON.stringify({
+				name: 'test-project',
+				scripts: {
+					build: 'tsc',
+				},
+			}),
+		},
+		async () => {
+			const result = await addFormatCheckScript();
+			expect(result).toBe(true);
+
+			const packageJson = JSON.parse(
+				await fs.readFile('package.json', 'utf8'),
+			) as {scripts: Record<string, string>};
+			expect(packageJson.scripts['format:check']).toBe('prettier . --check');
+			// Ensure existing scripts are preserved
+			expect(packageJson.scripts.build).toBe('tsc');
+		},
+	);
+});
+
+test('does not add format:check script when one already exists', async () => {
+	await withMockedFilesystem(
+		{
+			'package.json': JSON.stringify({
+				name: 'test-project',
+				scripts: {
+					'format:check': 'custom-formatter --check',
+				},
+			}),
+		},
+		async () => {
+			const result = await addFormatCheckScript();
+			expect(result).toBe(false);
+
+			const packageJson = JSON.parse(
+				await fs.readFile('package.json', 'utf8'),
+			) as {scripts: Record<string, string>};
+			// Ensure the existing format:check script is not overwritten
+			expect(packageJson.scripts['format:check']).toBe(
+				'custom-formatter --check',
+			);
+		},
+	);
+});
+
+test('returns false for format:check when no package.json exists', async () => {
+	await withMockedFilesystem({}, async () => {
+		const result = await addFormatCheckScript();
+		expect(result).toBe(false);
+	});
+});
+
+test('adds format:check script when scripts object does not exist', async () => {
+	await withMockedFilesystem(
+		{
+			'package.json': JSON.stringify({
+				name: 'test-project',
+			}),
+		},
+		async () => {
+			const result = await addFormatCheckScript();
+			expect(result).toBe(true);
+
+			const packageJson = JSON.parse(
+				await fs.readFile('package.json', 'utf8'),
+			) as {scripts: Record<string, string>};
+			expect(packageJson.scripts['format:check']).toBe('prettier . --check');
 		},
 	);
 });

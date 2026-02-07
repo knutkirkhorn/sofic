@@ -61,6 +61,36 @@ export async function readImportsFromConfig(
 	return [...new Set(packageImports)];
 }
 
+export async function addFormatCheckScript(): Promise<boolean> {
+	const packageJsonPath = 'package.json';
+
+	let packageJson: {scripts?: Record<string, string>; [key: string]: unknown};
+	try {
+		const content = await fs.readFile(packageJsonPath, 'utf8');
+		packageJson = JSON.parse(content) as typeof packageJson;
+	} catch {
+		// No package.json found, skip adding format:check script
+		return false;
+	}
+
+	// Check if a format:check script already exists
+	if (packageJson.scripts?.['format:check']) {
+		return false;
+	}
+
+	// Add the format:check script
+	packageJson.scripts = {
+		...packageJson.scripts,
+		'format:check': 'prettier . --check',
+	};
+
+	await fs.writeFile(
+		packageJsonPath,
+		JSON.stringify(packageJson, undefined, '\t') + '\n',
+	);
+	return true;
+}
+
 export async function addPrettier(): Promise<void> {
 	const {configFilePath, configFileName} = await askForConfigOption('prettier');
 
@@ -79,6 +109,16 @@ export async function addPrettier(): Promise<void> {
 			await fs.writeFile(configFileName, prettierConfigFile);
 			setTitle('Added Prettier config');
 			setOutput(configFileName);
+		}),
+		task('Adding format:check to scripts', async ({setTitle}) => {
+			const added = await addFormatCheckScript();
+			if (added) {
+				setTitle('Added format:check to scripts');
+			} else {
+				setTitle(
+					'`format:check` already exists in `scripts` or no package.json was found',
+				);
+			}
 		}),
 	]);
 }
