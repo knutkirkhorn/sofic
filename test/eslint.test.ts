@@ -85,7 +85,9 @@ test('adds lint script when no lint script exists', async () => {
 			const result = await addLintScript();
 			expect(result).toBe(true);
 
-			const packageJson = JSON.parse(await fs.readFile('package.json', 'utf8')) as {scripts: Record<string, string>};
+			const packageJson = JSON.parse(
+				await fs.readFile('package.json', 'utf8'),
+			) as {scripts: Record<string, string>};
 			expect(packageJson.scripts.lint).toBe('eslint .');
 			// Ensure existing scripts are preserved
 			expect(packageJson.scripts.build).toBe('tsc');
@@ -107,7 +109,9 @@ test('does not add lint script when one already exists', async () => {
 			const result = await addLintScript();
 			expect(result).toBe(false);
 
-			const packageJson = JSON.parse(await fs.readFile('package.json', 'utf8')) as {scripts: Record<string, string>};
+			const packageJson = JSON.parse(
+				await fs.readFile('package.json', 'utf8'),
+			) as {scripts: Record<string, string>};
 			// Ensure the existing lint script is not overwritten
 			expect(packageJson.scripts.lint).toBe('custom-linter .');
 		},
@@ -132,7 +136,9 @@ test('adds lint script when scripts object does not exist', async () => {
 			const result = await addLintScript();
 			expect(result).toBe(true);
 
-			const packageJson = JSON.parse(await fs.readFile('package.json', 'utf8')) as {scripts: Record<string, string>};
+			const packageJson = JSON.parse(
+				await fs.readFile('package.json', 'utf8'),
+			) as {scripts: Record<string, string>};
 			expect(packageJson.scripts.lint).toBe('eslint .');
 		},
 	);
