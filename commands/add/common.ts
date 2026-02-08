@@ -258,11 +258,22 @@ export async function askForConfigOption(configType: string): Promise<{
 			// Use default config
 			const __filename = fileURLToPath(import.meta.url);
 			const __dirname = path.dirname(__filename);
-			const snippetsDirectory = path.join(__dirname, 'snippets');
-			configFilePath = path.join(
-				snippetsDirectory,
-				defaultConfigFileNames[configType]!,
-			);
+			// When running from source, snippets are next to this file.
+			// When running from dist/, snippets are at the package root under commands/add/snippets.
+			const configFileName = defaultConfigFileNames[configType]!;
+			const localPath = path.join(__dirname, 'snippets', configFileName);
+			if (await fileExists(localPath)) {
+				configFilePath = localPath;
+			} else {
+				const packageRoot = path.join(__dirname, '..', '..', '..');
+				configFilePath = path.join(
+					packageRoot,
+					'commands',
+					'add',
+					'snippets',
+					configFileName,
+				);
+			}
 
 			break;
 		}

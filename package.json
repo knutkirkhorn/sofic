@@ -12,7 +12,8 @@
 		"sofic": "./dist/cli.js"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"commands/add/snippets"
 	],
 	"repository": {
 		"type": "git",
