@@ -25,11 +25,13 @@ $ sofic --help
     $ sofic
     $ sofic add <tool>
     $ sofic check <path>
+		$ sofic init <tool>
 
   Examples
     $ sofic
     $ sofic add eslint
     $ sofic add --list
+    $ sofic init bun
     $ sofic check C:\Users\knut\dev\sofic
     $ sofic check C:\Users\knut\dev
 ```
