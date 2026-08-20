@@ -25,7 +25,7 @@ $ sofic --help
     $ sofic
     $ sofic add <tool>
     $ sofic check <path>
-		$ sofic init <tool>
+    $ sofic init <tool>
 
   Examples
     $ sofic
