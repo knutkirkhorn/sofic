@@ -1,6 +1,6 @@
 {
 	"name": "sofic",
-	"version": "4.0.1",
+	"version": "4.0.2",
 	"description": "Check the source files in directories",
 	"scripts": {
 		"build": "tsc",
