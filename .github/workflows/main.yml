@@ -13,3 +13,22 @@ jobs:
       - run: bun run lint
       - run: bun run format:check
       - run: bun run test
+
+  publish-beta:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm install
+      - run: npm run build
+      - name: Set beta version
+        run: npm version "$(node -p "require('./package.json').version")-beta.$(echo $GITHUB_SHA | cut -c1-7)" --no-git-tag-version
+      - run: npm publish --tag beta
