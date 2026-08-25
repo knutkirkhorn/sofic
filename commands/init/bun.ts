@@ -63,15 +63,15 @@ export async function initBunProject() {
 				setTitle('Added ESLint config');
 				setOutput(eslintConfig.configFileName!);
 			}),
-			task('Adding lint to scripts', async ({setTitle}) => {
-				const added = await addLintScript();
-				setTitle(
-					added
-						? 'Added lint to scripts'
-						: '`lint` already exists in `scripts` or no package.json was found',
-				);
-			}),
 		]);
+		await task('Adding lint to scripts', async ({setTitle}) => {
+			const added = await addLintScript();
+			setTitle(
+				added
+					? 'Added lint to scripts'
+					: '`lint` already exists in `scripts` or no package.json was found',
+			);
+		});
 	}
 
 	if (prettierConfig.configFilePath && prettierConfig.configFileName) {
@@ -95,15 +95,15 @@ export async function initBunProject() {
 				setTitle('Added Prettier config');
 				setOutput(prettierConfig.configFileName!);
 			}),
-			task('Adding format:check to scripts', async ({setTitle}) => {
-				const added = await addFormatCheckScript();
-				setTitle(
-					added
-						? 'Added format:check to scripts'
-						: '`format:check` already exists in `scripts` or no package.json was found',
-				);
-			}),
 		]);
+		await task('Adding format:check to scripts', async ({setTitle}) => {
+			const added = await addFormatCheckScript();
+			setTitle(
+				added
+					? 'Added format:check to scripts'
+					: '`format:check` already exists in `scripts` or no package.json was found',
+			);
+		});
 	}
 
 	if (editorConfigResult.configFilePath && editorConfigResult.configFileName) {

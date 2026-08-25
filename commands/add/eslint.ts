@@ -109,15 +109,15 @@ export async function addEslint(): Promise<void> {
 			setTitle('Added ESLint config');
 			setOutput(configFileName);
 		}),
-		task('Adding lint to scripts', async ({setTitle}) => {
-			const added = await addLintScript();
-			if (added) {
-				setTitle('Added lint to scripts');
-			} else {
-				setTitle(
-					'`lint` already exists in `scripts` or no package.json was found',
-				);
-			}
-		}),
 	]);
+	await task('Adding lint to scripts', async ({setTitle}) => {
+		const added = await addLintScript();
+		if (added) {
+			setTitle('Added lint to scripts');
+		} else {
+			setTitle(
+				'`lint` already exists in `scripts` or no package.json was found',
+			);
+		}
+	});
 }
