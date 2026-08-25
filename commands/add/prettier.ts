@@ -110,15 +110,15 @@ export async function addPrettier(): Promise<void> {
 			setTitle('Added Prettier config');
 			setOutput(configFileName);
 		}),
-		task('Adding format:check to scripts', async ({setTitle}) => {
-			const added = await addFormatCheckScript();
-			if (added) {
-				setTitle('Added format:check to scripts');
-			} else {
-				setTitle(
-					'`format:check` already exists in `scripts` or no package.json was found',
-				);
-			}
-		}),
 	]);
+	await task('Adding format:check to scripts', async ({setTitle}) => {
+		const added = await addFormatCheckScript();
+		if (added) {
+			setTitle('Added format:check to scripts');
+		} else {
+			setTitle(
+				'`format:check` already exists in `scripts` or no package.json was found',
+			);
+		}
+	});
 }

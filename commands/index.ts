@@ -8,7 +8,7 @@ import {addEslint} from './add/eslint.js';
 import {addGitattributes} from './add/gitattributes.js';
 import {addPrettier} from './add/prettier.js';
 
-async function ensureUserConfigDirectoriesExists(): Promise<void> {
+export async function ensureUserConfigDirectoriesExists(): Promise<void> {
 	const homeDirectory = os.homedir();
 	const configDirectories = [
 		'eslint',
@@ -28,7 +28,7 @@ async function ensureUserConfigDirectoriesExists(): Promise<void> {
 	}
 }
 
-async function ensureUserConfigFileExists(): Promise<void> {
+export async function ensureUserConfigFileExists(): Promise<void> {
 	const homeDirectory = os.homedir();
 	const configFile = path.join(
 		homeDirectory,
@@ -95,6 +95,25 @@ export async function add(
 		}
 		case 'gitattributes': {
 			await addGitattributes();
+			break;
+		}
+		default: {
+			throw new Error(`Tool ${tool} is not supported`);
+		}
+	}
+}
+
+export async function init(tool: string | undefined, flags: {list?: boolean}) {
+	if (flags.list || !tool) {
+		console.log('Available tools:');
+		console.log('  - bun');
+		return;
+	}
+
+	switch (tool) {
+		case 'bun': {
+			const {initBunProject} = await import('./init/bun.js');
+			await initBunProject();
 			break;
 		}
 		default: {
