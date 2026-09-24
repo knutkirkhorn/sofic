@@ -2,9 +2,13 @@ import fs from 'node:fs/promises';
 import task from 'tasuku';
 import {askForConfigOption} from './common.js';
 
-export async function addGitattributes(): Promise<void> {
-	const {configFilePath, configFileName} =
-		await askForConfigOption('gitattributes');
+export async function addGitattributes(
+	options: {useDefault?: boolean} = {},
+): Promise<void> {
+	const {configFilePath, configFileName} = await askForConfigOption(
+		'gitattributes',
+		options,
+	);
 
 	// If the user renames or deletes a config, it will return early
 	if (!configFilePath || !configFileName) return;

@@ -28,11 +28,12 @@ $ sofic --help
     $ sofic init <tool>
 
   Options
-    --default, -d  Use the default config for every tool (init only)
+    --default, -d  Use the default config instead of prompting (add/init)
 
   Examples
     $ sofic
     $ sofic add eslint
+    $ sofic add eslint --default
     $ sofic add --list
     $ sofic init bun
     $ sofic init bun --default

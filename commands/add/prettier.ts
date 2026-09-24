@@ -91,8 +91,13 @@ export async function addFormatCheckScript(): Promise<boolean> {
 	return true;
 }
 
-export async function addPrettier(): Promise<void> {
-	const {configFilePath, configFileName} = await askForConfigOption('prettier');
+export async function addPrettier(
+	options: {useDefault?: boolean} = {},
+): Promise<void> {
+	const {configFilePath, configFileName} = await askForConfigOption(
+		'prettier',
+		options,
+	);
 
 	if (!configFilePath || !configFileName) return;
 

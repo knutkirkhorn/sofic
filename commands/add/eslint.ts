@@ -89,8 +89,13 @@ export async function addLintScript(): Promise<boolean> {
 	return true;
 }
 
-export async function addEslint(): Promise<void> {
-	const {configFilePath, configFileName} = await askForConfigOption('eslint');
+export async function addEslint(
+	options: {useDefault?: boolean} = {},
+): Promise<void> {
+	const {configFilePath, configFileName} = await askForConfigOption(
+		'eslint',
+		options,
+	);
 
 	if (!configFilePath || !configFileName) return;
 

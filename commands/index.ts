@@ -64,7 +64,7 @@ export async function ensureUserConfigFileExists(): Promise<void> {
 
 export async function add(
 	tool: string | undefined,
-	flags: {list?: boolean},
+	flags: {list?: boolean; default?: boolean},
 ): Promise<void> {
 	if (flags.list || !tool) {
 		console.log('Available tools:');
@@ -80,21 +80,22 @@ export async function add(
 	await ensureUserConfigFileExists();
 
 	// Run the add command for the tool
+	const options = {useDefault: flags.default};
 	switch (tool) {
 		case 'eslint': {
-			await addEslint();
+			await addEslint(options);
 			break;
 		}
 		case 'prettier': {
-			await addPrettier();
+			await addPrettier(options);
 			break;
 		}
 		case 'editorconfig': {
-			await addEditorConfig();
+			await addEditorConfig(options);
 			break;
 		}
 		case 'gitattributes': {
-			await addGitattributes();
+			await addGitattributes(options);
 			break;
 		}
 		default: {
