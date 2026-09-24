@@ -122,7 +122,10 @@ const defaultConfigFileNames: Record<string, string> = {
 };
 
 // TODO: better name?
-export async function askForConfigOption(configType: string): Promise<{
+export async function askForConfigOption(
+	configType: string,
+	options: {useDefault?: boolean} = {},
+): Promise<{
 	configFilePath: string | undefined;
 	configFileName: string | undefined;
 }> {
@@ -130,43 +133,45 @@ export async function askForConfigOption(configType: string): Promise<{
 	const userConfigs = await getUserConfigs();
 
 	// Prompt the user for which config to use
-	const configAnswer = await select({
-		message: 'Select a config',
-		choices: [
-			{
-				name: 'Default',
-				value: 'default',
-				description: 'Use the default config',
-			},
-			// Append all user defined configs
-			...Object.keys(userConfigs.configs[configType] ?? {}).map(key => ({
-				name: key,
-				value: `user-${key}`,
-				description: `Use the ${key} config`,
-			})),
-			new Separator(),
-			{
-				name: 'New config',
-				value: 'new',
-				description: 'Create a new config',
-			},
-			{
-				name: 'Rename config',
-				value: 'rename',
-				description: 'Rename a config',
-				disabled:
-					Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
-			},
-			{
-				name: 'Delete config',
-				value: 'delete',
-				description: 'Delete a config',
-				disabled:
-					Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
-			},
-			new Separator(),
-		],
-	});
+	const configAnswer = options.useDefault
+		? 'default'
+		: await select({
+				message: 'Select a config',
+				choices: [
+					{
+						name: 'Default',
+						value: 'default',
+						description: 'Use the default config',
+					},
+					// Append all user defined configs
+					...Object.keys(userConfigs.configs[configType] ?? {}).map(key => ({
+						name: key,
+						value: `user-${key}`,
+						description: `Use the ${key} config`,
+					})),
+					new Separator(),
+					{
+						name: 'New config',
+						value: 'new',
+						description: 'Create a new config',
+					},
+					{
+						name: 'Rename config',
+						value: 'rename',
+						description: 'Rename a config',
+						disabled:
+							Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
+					},
+					{
+						name: 'Delete config',
+						value: 'delete',
+						description: 'Delete a config',
+						disabled:
+							Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
+					},
+					new Separator(),
+				],
+			});
 
 	let configFilePath = '';
 

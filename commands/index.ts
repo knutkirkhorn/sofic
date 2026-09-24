@@ -103,7 +103,10 @@ export async function add(
 	}
 }
 
-export async function init(tool: string | undefined, flags: {list?: boolean}) {
+export async function init(
+	tool: string | undefined,
+	flags: {list?: boolean; default?: boolean},
+) {
 	if (flags.list || !tool) {
 		console.log('Available tools:');
 		console.log('  - bun');
@@ -113,7 +116,7 @@ export async function init(tool: string | undefined, flags: {list?: boolean}) {
 	switch (tool) {
 		case 'bun': {
 			const {initBunProject} = await import('./init/bun.js');
-			await initBunProject();
+			await initBunProject({useDefaults: flags.default});
 			break;
 		}
 		default: {

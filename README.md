@@ -27,11 +27,15 @@ $ sofic --help
     $ sofic check <path>
     $ sofic init <tool>
 
+  Options
+    --default, -d  Use the default config for every tool (init only)
+
   Examples
     $ sofic
     $ sofic add eslint
     $ sofic add --list
     $ sofic init bun
+    $ sofic init bun --default
     $ sofic check C:\Users\knut\dev\sofic
     $ sofic check C:\Users\knut\dev
 ```

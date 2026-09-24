@@ -31,7 +31,7 @@ async function installDevelopmentPackages(packages: string[]): Promise<void> {
 	await execa(resolvedCommand.command, resolvedCommand.args);
 }
 
-export async function initBunProject() {
+export async function initBunProject(options: {useDefaults?: boolean} = {}) {
 	// Run bun init
 	await execa('bun', ['init', '-y']);
 
@@ -40,10 +40,17 @@ export async function initBunProject() {
 	await ensureUserConfigFileExists();
 
 	// Phase 1: Collect all user input upfront so prompts don't interleave with task output
-	const eslintConfig = await askForConfigOption('eslint');
-	const prettierConfig = await askForConfigOption('prettier');
-	const editorConfigResult = await askForConfigOption('editorconfig');
-	const gitattributesConfig = await askForConfigOption('gitattributes');
+	const configOptions = {useDefault: options.useDefaults};
+	const eslintConfig = await askForConfigOption('eslint', configOptions);
+	const prettierConfig = await askForConfigOption('prettier', configOptions);
+	const editorConfigResult = await askForConfigOption(
+		'editorconfig',
+		configOptions,
+	);
+	const gitattributesConfig = await askForConfigOption(
+		'gitattributes',
+		configOptions,
+	);
 
 	// Phase 2: Run all tasks (no more interactive prompts from here)
 	if (eslintConfig.configFilePath && eslintConfig.configFileName) {
