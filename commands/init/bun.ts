@@ -139,4 +139,25 @@ export async function initBunProject(options: {useDefaults?: boolean} = {}) {
 			setOutput(gitattributesConfig.configFileName!);
 		});
 	}
+
+	await task('Staging files for initial git commit', async ({setTitle}) => {
+		await ensureGitRepository();
+		await execa('git', ['add', '.']);
+		setTitle('Staged files for initial git commit');
+	});
+
+	// Inherit stdio so commit signing prompts (e.g. security key touch or PIN) are visible
+	await execa('git', ['commit', '--quiet', '-m', 'Init with Sofic'], {
+		stdio: 'inherit',
+	});
+	console.log('✔ Created initial git commit');
+}
+
+async function ensureGitRepository(): Promise<void> {
+	const {failed} = await execa('git', ['rev-parse', '--is-inside-work-tree'], {
+		reject: false,
+	});
+	if (failed) {
+		await execa('git', ['init']);
+	}
 }
