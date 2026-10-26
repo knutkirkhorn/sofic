@@ -13,7 +13,8 @@ const cli = meow(
 	  $ sofic init <tool>
 
 	Options
-	  --default, -d  Use the default config instead of prompting (add/init)
+	  --default, -d  Use the default config instead of prompting (add/init/check --fix)
+	  --fix          Add missing configs found by check
 
 	Examples
 	  $ sofic
@@ -24,6 +25,8 @@ const cli = meow(
 	  $ sofic init bun --default
 	  $ sofic check C:\Users\knut\dev\sofic
 	  $ sofic check C:\Users\knut\dev
+	  $ sofic check --fix
+	  $ sofic check C:\Users\knut\dev --fix --default
 `,
 	{
 		importMeta: import.meta,
@@ -35,16 +38,20 @@ const cli = meow(
 				type: 'boolean',
 				shortFlag: 'd',
 			},
+			fix: {
+				type: 'boolean',
+			},
 		},
 	},
 );
 
 const command = cli.input[0];
+const checkOptions = {fix: cli.flags.fix, useDefault: cli.flags.default};
 
 switch (command) {
 	case 'check': {
 		const directoryPath = cli.input[1];
-		await checkRepoFiles(directoryPath);
+		await checkRepoFiles(directoryPath, checkOptions);
 
 		break;
 	}
@@ -69,7 +76,7 @@ switch (command) {
 				),
 			);
 		} else {
-			await checkRepoFiles();
+			await checkRepoFiles(undefined, checkOptions);
 		}
 	}
 }

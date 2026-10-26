@@ -28,7 +28,8 @@ $ sofic --help
     $ sofic init <tool>
 
   Options
-    --default, -d  Use the default config instead of prompting (add/init)
+    --default, -d  Use the default config instead of prompting (add/init/check --fix)
+    --fix          Add missing configs found by check
 
   Examples
     $ sofic
@@ -39,4 +40,6 @@ $ sofic --help
     $ sofic init bun --default
     $ sofic check C:\Users\knut\dev\sofic
     $ sofic check C:\Users\knut\dev
+    $ sofic check --fix
+    $ sofic check C:\Users\knut\dev --fix --default
 ```

@@ -1,10 +1,24 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {checkbox} from '@inquirer/prompts';
 import chalk from 'chalk';
 import gitRemoteOriginUrl from 'git-remote-origin-url';
 import logSymbols from 'log-symbols';
 import {checkJavascriptErrors, hasPackageJson} from './checkers/javascript.js';
+import {add} from './commands/index.js';
 import {fileExists} from './util.js';
+
+type FixableTool = 'eslint' | 'prettier' | 'editorconfig' | 'gitattributes';
+
+export interface CheckOptions {
+	fix?: boolean;
+	useDefault?: boolean;
+}
+
+const fixableFiles: Partial<Record<string, FixableTool>> = {
+	'.editorconfig': 'editorconfig',
+	'.gitattributes': 'gitattributes',
+};
 
 interface DirectoryInfo {
 	isDirectory: boolean;
@@ -90,9 +104,43 @@ async function checkGitLabCi(directoryPath: string): Promise<string[]> {
 	return ['GitLab CI: missing `.gitlab-ci.yml` file'];
 }
 
-async function checkDirectoryFiles(directoryPath: string): Promise<void> {
+async function fixDirectory(
+	directoryPath: string,
+	tools: FixableTool[],
+	useDefault: boolean | undefined,
+): Promise<void> {
+	const toolsToAdd = useDefault
+		? tools
+		: await checkbox({
+				message: 'Select what to add',
+				choices: tools.map(tool => ({name: tool, value: tool, checked: true})),
+			});
+
+	if (toolsToAdd.length === 0) return;
+
+	// The add commands write to and install packages in the current working directory
+	const originalCwd = process.cwd();
+	process.chdir(directoryPath);
+
+	try {
+		for (const tool of toolsToAdd) {
+			await add(tool, {default: useDefault});
+		}
+	} finally {
+		process.chdir(originalCwd);
+	}
+}
+
+async function checkDirectoryFiles(
+	directoryPath: string,
+	options: CheckOptions,
+): Promise<void> {
 	const filesToCheck = [...defaultFilesToCheck];
-	const regexFilesToCheck: Array<{regex: RegExp; error: string}> = [];
+	const regexFilesToCheck: Array<{
+		regex: RegExp;
+		error: string;
+		tool: FixableTool;
+	}> = [];
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
 	if (isJavascriptDirectory) {
 		regexFilesToCheck.push(
@@ -100,11 +148,13 @@ async function checkDirectoryFiles(directoryPath: string): Promise<void> {
 				regex: /^eslint\.config\.(js|mjs|ts)$/,
 				error:
 					'ESLint: missing config (`eslint.config.js`, `eslint.config.mjs`, or `eslint.config.ts`)',
+				tool: 'eslint',
 			},
 			{
 				regex: /^prettier\.config\.(js|mjs|ts)$/,
 				error:
 					'Prettier: missing config (`prettier.config.js`, `prettier.config.mjs`, or `prettier.config.ts`)',
+				tool: 'prettier',
 			},
 		);
 	}
@@ -113,12 +163,17 @@ async function checkDirectoryFiles(directoryPath: string): Promise<void> {
 	if (isDirectoryGitRepo) filesToCheck.push('.gitignore', '.gitattributes');
 
 	const errors: string[] = [];
+	const fixableTools: FixableTool[] = [];
 
 	for (const fileToCheck of filesToCheck) {
 		const filePath = path.join(directoryPath, fileToCheck);
 		const currentFileExists = await fileExists(filePath);
 
-		if (!currentFileExists) errors.push(fileToCheck);
+		if (!currentFileExists) {
+			errors.push(fileToCheck);
+			const tool = fixableFiles[fileToCheck];
+			if (tool) fixableTools.push(tool);
+		}
 	}
 
 	for (const regexFileToCheck of regexFilesToCheck) {
@@ -132,7 +187,10 @@ async function checkDirectoryFiles(directoryPath: string): Promise<void> {
 			}
 		}
 
-		if (!foundFile) errors.push(regexFileToCheck.error);
+		if (!foundFile) {
+			errors.push(regexFileToCheck.error);
+			fixableTools.push(regexFileToCheck.tool);
+		}
 	}
 
 	if (isJavascriptDirectory) {
@@ -160,10 +218,15 @@ async function checkDirectoryFiles(directoryPath: string): Promise<void> {
 	for (const error of errors) {
 		console.log(`${logSymbols.error} ${error}`);
 	}
+
+	if (options.fix && fixableTools.length > 0) {
+		await fixDirectory(directoryPath, fixableTools, options.useDefault);
+	}
 }
 
 export async function checkRepoFiles(
 	directoryPath: string = process.cwd(),
+	options: CheckOptions = {},
 ): Promise<void> {
 	const parsedDirectoryPath = path.resolve(directoryPath);
 	const {isDirectory: isPathDirectory} = await isDirectory(parsedDirectoryPath);
@@ -174,13 +237,13 @@ export async function checkRepoFiles(
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
 
 	if (isDirectoryGitRepo || isJavascriptDirectory) {
-		await checkDirectoryFiles(directoryPath);
+		await checkDirectoryFiles(directoryPath, options);
 		return;
 	}
 
 	const subDirectories = await getSubDirectories(parsedDirectoryPath);
 
 	for (const subDirectory of subDirectories) {
-		await checkDirectoryFiles(subDirectory);
+		await checkDirectoryFiles(subDirectory, options);
 	}
 }
