@@ -43,3 +43,13 @@ $ sofic --help
     $ sofic check --fix
     $ sofic check C:\Users\knut\dev --fix --default
 ```
+
+## Ignoring directories
+
+When checking a directory that contains multiple projects, add a `.soficignore` file to it to skip some of its subdirectories. Each line is the name of a subdirectory to ignore.
+
+```gitignore
+# Archived projects
+old-website
+forks/
+```

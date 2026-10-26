@@ -224,6 +224,23 @@ async function checkDirectoryFiles(
 	}
 }
 
+export async function readIgnoredDirectories(
+	directoryPath: string,
+): Promise<Set<string>> {
+	const ignoreFilePath = path.join(directoryPath, '.soficignore');
+	if (!(await fileExists(ignoreFilePath))) return new Set();
+
+	const ignoreFile = await fs.readFile(ignoreFilePath, 'utf8');
+	const ignoredDirectories = ignoreFile
+		.split(/\r?\n/)
+		.map(line => line.trim())
+		.filter(line => line !== '' && !line.startsWith('#'))
+		// Allow `dir`, `dir/`, `/dir` and `./dir` to all mean the same directory
+		.map(line => line.replace(/^\.?[/\\]+/, '').replace(/[/\\]+$/, ''));
+
+	return new Set(ignoredDirectories);
+}
+
 export async function checkRepoFiles(
 	directoryPath: string = process.cwd(),
 	options: CheckOptions = {},
@@ -242,8 +259,11 @@ export async function checkRepoFiles(
 	}
 
 	const subDirectories = await getSubDirectories(parsedDirectoryPath);
+	const ignoredDirectories = await readIgnoredDirectories(parsedDirectoryPath);
 
 	for (const subDirectory of subDirectories) {
+		if (ignoredDirectories.has(path.basename(subDirectory))) continue;
+
 		await checkDirectoryFiles(subDirectory, options);
 	}
 }
