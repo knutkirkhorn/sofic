@@ -6,7 +6,7 @@ import {input, select, Separator} from '@inquirer/prompts';
 import logSymbols from 'log-symbols';
 import {v4 as uuidv4} from 'uuid';
 import {z} from 'zod/v4';
-import {fileExists} from '../../util.js';
+import {fileExists} from '../../utility.js';
 
 const userConfigSchema = z.object({
 	version: z.string(),

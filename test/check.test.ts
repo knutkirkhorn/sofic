@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {expect, test} from 'bun:test';
 import {checkRepoFiles, readIgnoredDirectories} from '../index.js';
-import {fileExists} from '../util.js';
+import {fileExists} from '../utility.js';
 import {withMockedFilesystem} from './helpers.js';
 
 test('check does not add missing files without fix', async () => {

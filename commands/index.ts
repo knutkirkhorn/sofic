@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {fileExists} from '../util.js';
+import {fileExists} from '../utility.js';
 import {addEditorConfig} from './add/editorconfig.js';
 import {addEslint} from './add/eslint.js';
 import {addGitattributes} from './add/gitattributes.js';

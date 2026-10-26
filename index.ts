@@ -6,7 +6,7 @@ import gitRemoteOriginUrl from 'git-remote-origin-url';
 import logSymbols from 'log-symbols';
 import {checkJavascriptErrors, hasPackageJson} from './checkers/javascript.js';
 import {add} from './commands/index.js';
-import {fileExists} from './util.js';
+import {fileExists} from './utility.js';
 
 type FixableTool = 'eslint' | 'prettier' | 'editorconfig' | 'gitattributes';
 

@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import {fileExists} from '../util.js';
+import {fileExists} from '../utility.js';
 
 export async function hasPackageJson(directoryPath: string): Promise<boolean> {
 	return fileExists(path.join(directoryPath, 'package.json'));
