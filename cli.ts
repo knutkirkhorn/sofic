@@ -48,10 +48,15 @@ const cli = meow(
 const command = cli.input[0];
 const checkOptions = {fix: cli.flags.fix, useDefault: cli.flags.default};
 
+async function runCheck(directoryPath?: string): Promise<void> {
+	const errorCount = await checkRepoFiles(directoryPath, checkOptions);
+	if (errorCount > 0) process.exitCode = 1;
+}
+
 switch (command) {
 	case 'check': {
 		const directoryPath = cli.input[1];
-		await checkRepoFiles(directoryPath, checkOptions);
+		await runCheck(directoryPath);
 
 		break;
 	}
@@ -75,8 +80,9 @@ switch (command) {
 					`Unknown command \`${command}\`. See \`sofic --help\` for available commands.`,
 				),
 			);
+			process.exitCode = 1;
 		} else {
-			await checkRepoFiles(undefined, checkOptions);
+			await runCheck();
 		}
 	}
 }

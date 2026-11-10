@@ -131,7 +131,7 @@ async function fixDirectory(
 	directoryPath: string,
 	tools: FixableTool[],
 	useDefault: boolean | undefined,
-): Promise<void> {
+): Promise<number> {
 	const toolsToAdd = useDefault
 		? tools
 		: await checkbox({
@@ -139,7 +139,7 @@ async function fixDirectory(
 				choices: tools.map(tool => ({name: tool, value: tool, checked: true})),
 			});
 
-	if (toolsToAdd.length === 0) return;
+	if (toolsToAdd.length === 0) return 0;
 
 	// The add commands write to and install packages in the current working directory
 	const originalCwd = process.cwd();
@@ -152,12 +152,14 @@ async function fixDirectory(
 	} finally {
 		process.chdir(originalCwd);
 	}
+
+	return toolsToAdd.length;
 }
 
 async function checkDirectoryFiles(
 	directoryPath: string,
 	options: CheckOptions,
-): Promise<void> {
+): Promise<number> {
 	const filesToCheck = [...defaultFilesToCheck];
 	const regexFilesToCheck: Array<{
 		regex: RegExp;
@@ -242,8 +244,15 @@ async function checkDirectoryFiles(
 	}
 
 	if (options.fix && fixableTools.length > 0) {
-		await fixDirectory(directoryPath, fixableTools, options.useDefault);
+		const fixedCount = await fixDirectory(
+			directoryPath,
+			fixableTools,
+			options.useDefault,
+		);
+		return errors.length - fixedCount;
 	}
+
+	return errors.length;
 }
 
 export async function readIgnoredDirectories(
@@ -266,7 +275,7 @@ export async function readIgnoredDirectories(
 export async function checkRepoFiles(
 	directoryPath: string = process.cwd(),
 	options: CheckOptions = {},
-): Promise<void> {
+): Promise<number> {
 	const parsedDirectoryPath = path.resolve(directoryPath);
 	const {isDirectory: isPathDirectory} = await isDirectory(parsedDirectoryPath);
 
@@ -276,16 +285,18 @@ export async function checkRepoFiles(
 	const isJavascriptDirectory = await hasPackageJson(directoryPath);
 
 	if (isDirectoryGitRepo || isJavascriptDirectory) {
-		await checkDirectoryFiles(directoryPath, options);
-		return;
+		return checkDirectoryFiles(directoryPath, options);
 	}
 
 	const subDirectories = await getSubDirectories(parsedDirectoryPath);
 	const ignoredDirectories = await readIgnoredDirectories(parsedDirectoryPath);
+	let errorCount = 0;
 
 	for (const subDirectory of subDirectories) {
 		if (ignoredDirectories.has(path.basename(subDirectory))) continue;
 
-		await checkDirectoryFiles(subDirectory, options);
+		errorCount += await checkDirectoryFiles(subDirectory, options);
 	}
+
+	return errorCount;
 }
