@@ -1,7 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import {expect, test} from 'bun:test';
-import {checkRepoFiles, readIgnoredDirectories} from '../index.js';
+import {expect, spyOn, test} from 'bun:test';
+import {
+	checkRepoFiles,
+	parseGitHostname,
+	readIgnoredDirectories,
+} from '../index.js';
 import {fileExists} from '../utility.js';
 import {withMockedFilesystem} from './helpers.js';
 
@@ -36,6 +40,55 @@ test('check with fix adds missing files using the default config', async () => {
 		expect(editorConfig).toBe(defaultEditorConfig);
 		expect(process.cwd()).toBe(originalCwd);
 	});
+});
+
+test('parses the hostname of git remotes', () => {
+	expect(parseGitHostname('https://github.com/user/repo.git')).toBe(
+		'github.com',
+	);
+	expect(parseGitHostname('ssh://git@gitlab.com/user/repo.git')).toBe(
+		'gitlab.com',
+	);
+	expect(parseGitHostname('git@github.com:user/repo.git')).toBe('github.com');
+	expect(parseGitHostname('github.com:user/repo.git')).toBe('github.com');
+	expect(parseGitHostname('/srv/git/repo.git')).toBeUndefined();
+});
+
+async function captureCheckOutput(directoryPath: string): Promise<string> {
+	const logSpy = spyOn(console, 'log').mockImplementation(() => {});
+	try {
+		await checkRepoFiles(directoryPath);
+		return logSpy.mock.calls.flat().join('\n');
+	} finally {
+		logSpy.mockRestore();
+	}
+}
+
+test('check handles git repos with an SSH remote', async () => {
+	await withMockedFilesystem(
+		{
+			'.git/config':
+				'[remote "origin"]\n\turl = git@github.com:user/repo.git\n',
+		},
+		async () => {
+			const output = await captureCheckOutput('.');
+			expect(output).toContain('GitHub Actions: missing workflow file');
+		},
+	);
+});
+
+test('check handles git repos without a remote', async () => {
+	await withMockedFilesystem(
+		{
+			'no-remote/.git/config': '[core]\n\tbare = false\n',
+			'project/readme.md': '',
+		},
+		async () => {
+			const output = await captureCheckOutput('.');
+			expect(output).not.toContain('GitHub Actions');
+			expect(output).toContain(path.resolve('project'));
+		},
+	);
 });
 
 test('reads ignored directories from .soficignore', async () => {

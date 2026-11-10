@@ -57,6 +57,29 @@ async function isGitRepo(directoryPath: string): Promise<boolean> {
 	return (await isDirectory(path.join(directoryPath, '.git'))).isDirectory;
 }
 
+export function parseGitHostname(remoteUrl: string): string | undefined {
+	if (URL.canParse(remoteUrl)) {
+		const {hostname} = new URL(remoteUrl);
+		if (hostname !== '') return hostname;
+	}
+
+	// SCP-like syntax used by SSH remotes, e.g. `git@github.com:user/repo.git`
+	const scpLikeMatch = /^(?:[^@/]+@)?([^:/]+):/.exec(remoteUrl);
+	return scpLikeMatch?.[1];
+}
+
+async function getGitHostname(
+	directoryPath: string,
+): Promise<string | undefined> {
+	try {
+		const gitRemote = await gitRemoteOriginUrl({cwd: directoryPath});
+		return parseGitHostname(gitRemote);
+	} catch {
+		// The repo has no `origin` remote
+		return undefined;
+	}
+}
+
 async function checkGithubActions(directoryPath: string): Promise<string[]> {
 	const githubActionsDirectory = path.join(
 		directoryPath,
@@ -199,8 +222,7 @@ async function checkDirectoryFiles(
 	}
 
 	if (isDirectoryGitRepo) {
-		const gitRemote = await gitRemoteOriginUrl({cwd: directoryPath});
-		const gitHostname = new URL(gitRemote).hostname;
+		const gitHostname = await getGitHostname(directoryPath);
 
 		if (gitHostname === 'github.com') {
 			const githubActionsErrors = await checkGithubActions(directoryPath);
