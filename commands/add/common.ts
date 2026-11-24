@@ -121,57 +121,124 @@ const defaultConfigFileNames: Record<string, string> = {
 	gitattributes: '.gitattributes',
 };
 
+export type ConfigOptionOptions = {
+	useDefault?: boolean;
+	configName?: string;
+};
+
+async function getDefaultConfigFilePath(configType: string): Promise<string> {
+	const __filename = fileURLToPath(import.meta.url);
+	const __dirname = path.dirname(__filename);
+	// When running from source, snippets are next to this file.
+	// When running from dist/, snippets are at the package root under commands/add/snippets.
+	const configFileName = defaultConfigFileNames[configType]!;
+	const localPath = path.join(__dirname, 'snippets', configFileName);
+	if (await fileExists(localPath)) {
+		return localPath;
+	}
+
+	const packageRoot = path.join(__dirname, '..', '..', '..');
+	return path.join(
+		packageRoot,
+		'commands',
+		'add',
+		'snippets',
+		configFileName,
+	);
+}
+
+function getUserConfigFilePath(
+	userConfigs: UserConfigs,
+	configType: string,
+	configName: string,
+): string {
+	const config = userConfigs.configs[configType]?.[configName];
+	if (!config) {
+		const available = Object.keys(userConfigs.configs[configType] ?? {});
+		const availableList =
+			available.length > 0 ? available.join(', ') : '(none)';
+		throw new Error(
+			`Config '${configName}' not found for ${configType}. Available: ${availableList}`,
+		);
+	}
+
+	return path.join(
+		os.homedir(),
+		'.sofic',
+		'configs',
+		configType,
+		config.relative_path,
+	);
+}
+
 // TODO: better name?
 export async function askForConfigOption(
 	configType: string,
-	options: {useDefault?: boolean} = {},
+	options: ConfigOptionOptions = {},
 ): Promise<{
 	configFilePath: string | undefined;
 	configFileName: string | undefined;
 }> {
+	if (options.useDefault && options.configName) {
+		throw new Error('Cannot use both --default and a config name');
+	}
+
+	if (options.useDefault || options.configName === 'default') {
+		const configFilePath = await getDefaultConfigFilePath(configType);
+		return {configFilePath, configFileName: path.basename(configFilePath)};
+	}
+
+	if (options.configName) {
+		const userConfigs = await getUserConfigs();
+		const configFilePath = getUserConfigFilePath(
+			userConfigs,
+			configType,
+			options.configName,
+		);
+		return {configFilePath, configFileName: path.basename(configFilePath)};
+	}
+
 	// Read the user configs
 	const userConfigs = await getUserConfigs();
 
 	// Prompt the user for which config to use
-	const configAnswer = options.useDefault
-		? 'default'
-		: await select({
-				message: 'Select a config',
-				choices: [
-					{
-						name: 'Default',
-						value: 'default',
-						description: 'Use the default config',
-					},
-					// Append all user defined configs
-					...Object.keys(userConfigs.configs[configType] ?? {}).map(key => ({
-						name: key,
-						value: `user-${key}`,
-						description: `Use the ${key} config`,
-					})),
-					new Separator(),
-					{
-						name: 'New config',
-						value: 'new',
-						description: 'Create a new config',
-					},
-					{
-						name: 'Rename config',
-						value: 'rename',
-						description: 'Rename a config',
-						disabled:
-							Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
-					},
-					{
-						name: 'Delete config',
-						value: 'delete',
-						description: 'Delete a config',
-						disabled:
-							Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
-					},
-					new Separator(),
-				],
-			});
+	const configAnswer = await select({
+		message: 'Select a config',
+		choices: [
+			{
+				name: 'Default',
+				value: 'default',
+				description: 'Use the default config',
+			},
+			// Append all user defined configs
+			...Object.keys(userConfigs.configs[configType] ?? {}).map(key => ({
+				name: key,
+				value: `user-${key}`,
+				description: `Use the ${key} config`,
+			})),
+			new Separator(),
+			{
+				name: 'New config',
+				value: 'new',
+				description: 'Create a new config',
+			},
+			{
+				name: 'Rename config',
+				value: 'rename',
+				description: 'Rename a config',
+				disabled:
+					Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
+			},
+			{
+				name: 'Delete config',
+				value: 'delete',
+				description: 'Delete a config',
+				disabled:
+					Object.keys(userConfigs.configs[configType] ?? {}).length === 0,
+			},
+			new Separator(),
+		],
+	});
 
 	let configFilePath = '';
 
@@ -260,26 +327,7 @@ export async function askForConfigOption(
 			break;
 		}
 		case 'default': {
-			// Use default config
-			const __filename = fileURLToPath(import.meta.url);
-			const __dirname = path.dirname(__filename);
-			// When running from source, snippets are next to this file.
-			// When running from dist/, snippets are at the package root under commands/add/snippets.
-			const configFileName = defaultConfigFileNames[configType]!;
-			const localPath = path.join(__dirname, 'snippets', configFileName);
-			if (await fileExists(localPath)) {
-				configFilePath = localPath;
-			} else {
-				const packageRoot = path.join(__dirname, '..', '..', '..');
-				configFilePath = path.join(
-					packageRoot,
-					'commands',
-					'add',
-					'snippets',
-					configFileName,
-				);
-			}
-
+			configFilePath = await getDefaultConfigFilePath(configType);
 			break;
 		}
 		case 'rename': {
@@ -292,14 +340,11 @@ export async function askForConfigOption(
 		}
 		default: {
 			// Use user config
-			const homeDirectory = os.homedir();
 			const configName = configAnswer.replace('user-', '');
-			configFilePath = path.join(
-				homeDirectory,
-				'.sofic',
-				'configs',
+			configFilePath = getUserConfigFilePath(
+				userConfigs,
 				configType,
-				userConfigs.configs[configType]![configName]!.relative_path,
+				configName,
 			);
 
 			break;

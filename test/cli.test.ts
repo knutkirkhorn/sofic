@@ -40,3 +40,13 @@ test('check exits with code 0 when fix resolves all problems', async () => {
 test('unknown command exits with code 1', async () => {
 	expect(await runCli(['unknown'])).toBe(1);
 });
+
+test('add with unknown config name exits with code 1', async () => {
+	const {exitCode, stderr} = await execa(
+		'bun',
+		[cliPath, 'add', 'eslint', 'definitely-missing-config-name'],
+		{reject: false},
+	);
+	expect(exitCode).not.toBe(0);
+	expect(stderr).toContain("Config 'definitely-missing-config-name' not found");
+});

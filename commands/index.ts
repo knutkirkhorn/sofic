@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {fileExists} from '../utility.js';
+import type {ConfigOptionOptions} from './add/common.js';
 import {addEditorConfig} from './add/editorconfig.js';
 import {addEslint} from './add/eslint.js';
 import {addGitattributes} from './add/gitattributes.js';
@@ -64,7 +65,7 @@ export async function ensureUserConfigFileExists(): Promise<void> {
 
 export async function add(
 	tool: string | undefined,
-	flags: {list?: boolean; default?: boolean},
+	flags: {list?: boolean; default?: boolean; configName?: string},
 ): Promise<void> {
 	if (flags.list || !tool) {
 		console.log('Available tools:');
@@ -80,7 +81,10 @@ export async function add(
 	await ensureUserConfigFileExists();
 
 	// Run the add command for the tool
-	const options = {useDefault: flags.default};
+	const options: ConfigOptionOptions = {
+		useDefault: flags.default,
+		configName: flags.configName,
+	};
 	switch (tool) {
 		case 'eslint': {
 			await addEslint(options);
