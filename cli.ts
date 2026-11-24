@@ -8,7 +8,7 @@ const cli = meow(
 	String.raw`
 	Usage
 	  $ sofic
-	  $ sofic add <tool>
+	  $ sofic add <tool> [config]
 	  $ sofic check <path>
 	  $ sofic init <tool>
 
@@ -19,6 +19,7 @@ const cli = meow(
 	Examples
 	  $ sofic
 	  $ sofic add eslint
+	  $ sofic add eslint next
 	  $ sofic add eslint --default
 	  $ sofic add --list
 	  $ sofic init bun
@@ -62,7 +63,8 @@ switch (command) {
 	}
 	case 'add': {
 		const tool = cli.input[1];
-		await add(tool, cli.flags);
+		const configName = cli.input[2];
+		await add(tool, {...cli.flags, configName});
 
 		break;
 	}

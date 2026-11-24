@@ -23,7 +23,7 @@ $ sofic --help
 
   Usage
     $ sofic
-    $ sofic add <tool>
+    $ sofic add <tool> [config]
     $ sofic check <path>
     $ sofic init <tool>
 
@@ -34,6 +34,7 @@ $ sofic --help
   Examples
     $ sofic
     $ sofic add eslint
+    $ sofic add eslint next
     $ sofic add eslint --default
     $ sofic add --list
     $ sofic init bun

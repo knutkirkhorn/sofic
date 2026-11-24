@@ -1,9 +1,9 @@
 import fs from 'node:fs/promises';
 import task from 'tasuku';
-import {askForConfigOption} from './common.js';
+import {askForConfigOption, type ConfigOptionOptions} from './common.js';
 
 export async function addEditorConfig(
-	options: {useDefault?: boolean} = {},
+	options: ConfigOptionOptions = {},
 ): Promise<void> {
 	const {configFilePath, configFileName} = await askForConfigOption(
 		'editorconfig',

@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import {execa} from 'execa';
 import {detect, resolveCommand} from 'package-manager-detector';
 import task from 'tasuku';
-import {askForConfigOption} from './common.js';
+import {askForConfigOption, type ConfigOptionOptions} from './common.js';
 
 async function installPrettierPackages(packages: string[]): Promise<void> {
 	// Get what package manager is used for given project
@@ -92,7 +92,7 @@ export async function addFormatCheckScript(): Promise<boolean> {
 }
 
 export async function addPrettier(
-	options: {useDefault?: boolean} = {},
+	options: ConfigOptionOptions = {},
 ): Promise<void> {
 	const {configFilePath, configFileName} = await askForConfigOption(
 		'prettier',

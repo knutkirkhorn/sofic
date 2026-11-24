@@ -3,7 +3,7 @@ import {execa} from 'execa';
 import {detect, resolveCommand} from 'package-manager-detector';
 import {parseImports} from 'parse-imports';
 import task from 'tasuku';
-import {askForConfigOption} from './common.js';
+import {askForConfigOption, type ConfigOptionOptions} from './common.js';
 
 async function installEslintPackages(packages: string[]): Promise<void> {
 	// Get what package manager is used for given project
@@ -90,7 +90,7 @@ export async function addLintScript(): Promise<boolean> {
 }
 
 export async function addEslint(
-	options: {useDefault?: boolean} = {},
+	options: ConfigOptionOptions = {},
 ): Promise<void> {
 	const {configFilePath, configFileName} = await askForConfigOption(
 		'eslint',
